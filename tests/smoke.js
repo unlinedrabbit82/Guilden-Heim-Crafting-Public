@@ -49,3 +49,15 @@ assert.equal(vm.runInContext('materials.leather.name',legacy),'Leather');
 assert.equal(vm.runInContext('materials.cloth.name',legacy),'Cloth');
 assert.equal(vm.runInContext('materials.hide.name',legacy),'Rawhide');
 console.log('GuildenHeim v0.9.1 cache-compatibility regression passed.');
+// v0.9.2: every user-selectable component has a nonempty help description.
+for(const expression of [
+  'Object.values(materials).every(v=>typeof v.help==="string"&&v.help.length>10)',
+  'Object.values(heads).every(v=>typeof v.description==="string"&&v.description.length>10)',
+  'Object.values(handles).every(v=>typeof v.description==="string"&&v.description.length>10)',
+  'Object.values(rangedParts).every(group=>Object.values(group).every(v=>typeof v.description==="string"&&v.description.length>10))',
+  'Object.values(armorShells).every(v=>typeof v.description==="string"&&v.description.length>10)',
+  'Object.values(armorLinings).every(v=>typeof v.description==="string"&&v.description.length>10)',
+  'Object.values(armorFastenings).every(v=>typeof v.description==="string"&&v.description.length>10)',
+  'Object.values(armorReinforcements).every(v=>typeof v.description==="string"&&v.description.length>10)'
+])assert.equal(evalInContext(expression),true,`Help description coverage: ${expression}`);
+console.log('GuildenHeim v0.9.2 contextual help coverage passed.');

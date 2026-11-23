@@ -35,6 +35,32 @@ const armorShells={
 const armorLinings={none:{name:'No additional lining',units:0},cloth:{name:'Cloth lining',units:1},leather:{name:'Leather backing',units:2}};
 const armorFastenings={straps:{name:'Leather straps',units:1},buckles:{name:'Buckles and straps',units:2},rivets:{name:'Riveted joints',units:3}};
 const armorReinforcements={none:{name:'No reinforcement',units:0},edges:{name:'Reinforced edges',units:2},joints:{name:'Articulated joints',units:3}};
+/* DEV: Armor help strings are used by the shared tooltip component. */
+const armorShellDescriptions={
+  padded:'Quilted fabric layers protect through padding and flexibility.',
+  leather:'Shaped leather panels provide lightweight coverage without rigid metal.',
+  studded:'Reinforced leather uses additional fittings and a stronger protective surface.',
+  hide:'Thick hide emphasizes rugged protection at moderate mobility cost.',
+  chain_shirt:'Interlocked rings cover the torso while allowing movement.',
+  scale:'Overlapping plates spread impacts but can add bulk and noise.',
+  breastplate:'A formed chest plate protects vital areas without covering every limb.',
+  half_plate:'A collection of fitted plates protects much of the upper body.',
+  ring_mail:'Metal rings attached to a backing provide basic heavy protection.',
+  chain_mail:'A full linked-metal construction that requires extensive assembly.',
+  splint:'Rigid metal strips supported by padding and joints.',
+  plate:'A fitted system of articulated metal plates requiring complex assembly.',
+  shield:'A handheld protective body that adds to existing Armor Class.'
+};
+for(const [id,item] of Object.entries(armorShells))item.description=armorShellDescriptions[id];
+Object.assign(armorLinings.none,{description:'No extra comfort layer; some heavy builds may need padding.'});
+Object.assign(armorLinings.cloth,{description:'Soft backing cushions rigid components and reduces discomfort.'});
+Object.assign(armorLinings.leather,{description:'Durable flexible backing supports metal parts and fastening points.'});
+Object.assign(armorFastenings.straps,{description:'Adjustable ties and straps provide a simple assembly method.'});
+Object.assign(armorFastenings.buckles,{description:'Buckles add more secure adjustment and require extra hardware.'});
+Object.assign(armorFastenings.rivets,{description:'Riveted connections hold parts firmly but are harder to adjust.'});
+Object.assign(armorReinforcements.none,{description:'No additional protective material is added.'});
+Object.assign(armorReinforcements.edges,{description:'Reinforced boundaries improve durability and use more material.'});
+Object.assign(armorReinforcements.joints,{description:'Moving reinforced joints support complex protective assemblies.'});
 // AC: base + min(Dex modifier, dexCap); dexCap=null means unlimited.
 // Heavy armor uses dexCap=0 and ignores even negative Dex modifiers.
 // Shields use a flat +2 bonus to the wearer's existing AC.

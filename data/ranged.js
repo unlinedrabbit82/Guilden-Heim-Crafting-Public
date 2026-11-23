@@ -7,6 +7,13 @@ const rangedParts={
   mechanisms:{string:{name:'Bowstring',units:1},trigger:{name:'Trigger + string',units:2},breath:{name:'Breath-driven tube',units:1},cord:{name:'Braided sling cords',units:1},hand:{name:'Hand-thrown',units:0}},
   grips:{short:{name:'Compact grip',units:1},standard:{name:'Standard grip',units:2},long:{name:'Extended grip / stock',units:3}}
 };
+/* DEV: Help content stays beside its component definitions. */
+const rangedPartDescriptions={
+  frames:{bow:'Flexible limbs store energy when the string is drawn. Requires a bowstring mechanism.',crossbow:'A rigid stock with a mounted prod. Requires a trigger mechanism and careful alignment.',tube:'A straight tube that propels lightweight darts using breath pressure.',sling:'A pouch holds a projectile while cords transfer rotational force.',dart:'A self-contained thrown projectile; it uses no separate launch mechanism.',net:'A woven restraint intended for throwing rather than dealing direct damage.'},
+  mechanisms:{string:'A tensioned bowstring transfers stored limb energy to an arrow.',trigger:'A release mechanism holds and fires a crossbow string.',breath:'The user propels small ammunition by blowing through the tube.',cord:'Braided cords swing and release ammunition from a sling pouch.',hand:'The user throws the finished projectile or net directly.'},
+  grips:{short:'A compact grip saves material but can complicate powerful mechanisms.',standard:'A conventional grip or stock suited to most ordinary ranged designs.',long:'An extended stock or grip adds support and length to larger constructions.'}
+};
+for(const [family,entries] of Object.entries(rangedParts))for(const [id,item] of Object.entries(entries))item.description=rangedPartDescriptions[family][id];
 const rangedRecipes=[
   {id:'light_crossbow',name:'Light Crossbow',tier:'Simple',frame:'crossbow',mechanism:'trigger',grip:'standard',material:'oak',damage:'1d8',type:'Piercing',properties:['Ammunition (80/320)','Loading','Two-Handed'],ammunition:'Bolts',range:[80,320]},
   {id:'dart',name:'Dart',tier:'Simple',frame:'dart',mechanism:'hand',grip:'short',material:'iron',damage:'1d4',type:'Piercing',properties:['Finesse','Thrown (20/60)'],ammunition:'Self',range:[20,60]},

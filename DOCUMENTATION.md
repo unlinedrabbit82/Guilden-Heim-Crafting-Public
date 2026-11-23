@@ -1,6 +1,6 @@
 # GuildenHeim — System Documentation
 
-**Version:** 0.9.1  
+**Version:** 0.9.2  
 **Project:** Procedural crafting and recipe-discovery workbench for a D&D 5e (2014) campaign  
 **Platform:** Static website, compatible with GitHub Pages  
 **Audience:** Players, Dungeon Masters, playtesters, and developers  
@@ -11,6 +11,8 @@
 ## 1. Overview
 
 GuildenHeim allows a player to start with a standard equipment recipe or experiment with a custom combination of materials and components. The player can evaluate basic construction viability and estimated material usage. A DM can unlock review tools, choose crafting difficulty and proficiency, calculate a provisional result, roll an attempt, and save a successful discovery for future use.
+
+**Beta usability update (v0.9.2):** Question-mark buttons beside crafting selectors explain the currently selected material, part, shape, or technique. Hover, focus, click, or tap to read them. Main crafting statistics also include explanations; tooltips never change crafting results.
 
 The main design goals are:
 
@@ -226,6 +228,7 @@ css/
   ranged.css          Ranged layout
   armor.css           Armor-specific layout
   item-card.css       Shared parchment styling
+  help.css            Accessible tooltip positioning and styling
 data/
   materials.js        Material types and ratings
   components.js       Melee component definitions
@@ -244,6 +247,7 @@ js/
   app.js              Main interface, melee, DM tools, import/export
   ranged.js           Ranged interface and outcomes
   armor.js            Armor interface and outcomes
+  help.js             Contextual option and metric descriptions
 tests/
   smoke.js            Basic data, AC, timing and compatibility checks
 ```
@@ -282,7 +286,7 @@ Use **Export recipes** to download the combined GuildenHeim JSON backup of melee
 
 ## 9. GitHub Pages Deployment
 
-1. Extract the `guildenheim-v0.9.1-complete.zip` package.
+1. Extract the `guildenheim-v0.9.2-complete.zip` package.
 2. Open its `guildenheim-v091` directory.
 3. Upload the **contents** of that directory into your GitHub repository root (the repository root should directly contain `index.html`).
 4. Keep `css/`, `data/`, `js/`, and `tests/` directories intact.
@@ -311,6 +315,8 @@ Use **Export recipes** to download the combined GuildenHeim JSON backup of melee
 | Adjust compatibility and probabilities | `js/engine.js`, `js/ranged.js`, `js/armor.js` |
 | Adjust time tiers | `js/crafting-time.js` |
 | Update shared parchment content | `js/item-card.js` |
+| Edit component explanations | Component definitions in `data/*.js` |
+| Add new field and statistic tooltips | `js/help.js` |
 | Adjust parchment appearance | `css/styles.css`, `css/item-card.css` |
 | Modify navigation and exports | `js/app.js` |
 | Adjust discovery interactions | `data/interactions.js` |

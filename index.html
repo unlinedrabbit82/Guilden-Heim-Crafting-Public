@@ -6,13 +6,19 @@
   <meta name="theme-color" content="#111c22" />
   <meta name="description" content="A modular tabletop crafting workbench for recipes, experiments, and discovered equipment." />
   <title>GuildenHeim — Crafting Workbench</title>
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="skill.css" />
-  <link rel="stylesheet" href="dm.css" />
-  <link rel="stylesheet" href="player.css" />
-  <script src="script.js" defer></script>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/skill.css" />
+  <link rel="stylesheet" href="css/dm.css" />
+  <link rel="stylesheet" href="css/player.css" />
+  <script src="data/materials.js" defer></script>
+  <script src="data/components.js" defer></script>
+  <script src="data/recipes.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/engine.js" defer></script>
+  <script src="js/app.js" defer></script>
 </head>
 <body>
+  <noscript><p style="margin:1rem;padding:1rem;border:2px solid #d5ac64;color:#fff;background:#17252c">GuildenHeim requires JavaScript for interactive crafting. If your browser or security policy disables JavaScript, the generator cannot calculate or export designs. The source code is available for review before enabling it.</p></noscript>
   <header class="masthead">
     <div class="brand"><div class="brand-mark">✦</div><div><strong>GUILDENHEIM</strong><small>THE ADVENTURER'S WORKBENCH</small></div></div>
     <div class="top-right"><span class="edition">HOMEbrew · 5e-style prototype</span><button id="playerExportButton" class="outline tiny">Export design</button><button id="dmToggle" class="outline tiny" aria-pressed="false">DM review</button><button id="exportButton" class="outline tiny dm-only">Export recipes</button><button id="importButton" class="outline tiny dm-only">Import</button><input type="file" id="importFile" accept="application/json" hidden /></div>

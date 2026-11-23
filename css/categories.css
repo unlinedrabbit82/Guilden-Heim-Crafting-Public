@@ -20,5 +20,5 @@
 .property-entry{border-top:1px solid var(--line);padding:9px 0}
 .property-entry summary{cursor:pointer;font-size:13px;color:var(--text);font-weight:600}
 .property-entry p{font-size:12px;color:var(--muted);line-height:1.65;margin:8px 0 4px}
-#meleeWorkspace[hidden],#rangedWorkspace[hidden],#categoryPlaceholder[hidden]{display:none!important}
+#meleeWorkspace[hidden],#rangedWorkspace[hidden],#armorWorkspace[hidden],#categoryPlaceholder[hidden]{display:none!important}
 @media(max-width:650px){.craft-nav{padding:10px 12px;gap:7px}.craft-tab{min-width:122px;flex-direction:column;gap:4px;font-size:13px;padding:9px}.category-placeholder{margin:18px 12px 36px;padding:25px 17px}.category-placeholder h1{font-size:25px}.placeholder-examples{grid-template-columns:1fr}}

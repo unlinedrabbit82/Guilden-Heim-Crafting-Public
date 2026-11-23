@@ -1,6 +1,6 @@
 # GuildenHeim — GitHub Pages Edition
 
-**Version 0.8.1.** Static, client-side D&D crafting workbench. It contains all 37 standard 2014 weapons (28 melee, 9 ranged) as blueprints, matching parchment-style result cards, base material estimates, DM-only crafting evaluations, local discoveries, and a 2014 weapon-property reference. Armor and magic remain placeholders.
+**Version 0.9.** Static, client-side D&D crafting workbench. It includes all 37 standard 2014 weapons (28 melee, 9 ranged) and all 13 standard 2014 armor/shield entries, shared parchment-style DM result cards, player component estimates, discovery progression, and tiered crafting times. Magic remains a placeholder.
 
 ## Folder layout
 
@@ -12,6 +12,7 @@ guildenheim/
 │   ├── categories.css      # Top crafting tabs and property reference
 │   ├── ranged.css          # Ranged crafting interface
 │   ├── item-card.css       # Shared parchment card appearance
+│   ├── armor.css           # Armor/shield workbench
 │   ├── skill.css           # Skill panel styling
 │   ├── dm.css              # Player/DM visibility
 │   └── player.css          # Player notes styling
@@ -21,15 +22,18 @@ guildenheim/
 │   ├── recipes.js          # 28 melee weapon blueprints
 │   ├── weapon-stats.js     # Official 2014 cost and weight table
 │   ├── ranged.js           # 9 ranged blueprints and component templates
+│   ├── armor.js            # 13 armor and shield baselines
 │   ├── properties.js       # All 11 2014 weapon properties, explained
 │   ├── techniques.js       # Crafting technique rules
 │   └── interactions.js     # Reusable, tag-based discoveries
 └── js/
     ├── storage.js          # Local saves and XP state
     ├── engine.js           # Cost, compatibility, classification
+    ├── crafting-time.js    # Shared 6-second -> 24-hour duration system
     ├── item-card.js        # Reusable parchment result renderer
     ├── app.js              # Melee UI, shared navigation, exports
-    └── ranged.js           # Ranged UI, evaluations, discoveries
+    ├── ranged.js           # Ranged UI, evaluations, discoveries
+    └── armor.js            # Armor UI, AC, evaluations, discoveries
 ```
 
 The JavaScript files are **classic deferred scripts** loaded in the order shown in `index.html`. Do not reorder them without refactoring dependencies. This avoids a build tool or package manager and works on GitHub Pages.
@@ -37,7 +41,7 @@ The JavaScript files are **classic deferred scripts** loaded in the order shown 
 ## GitHub Pages setup
 
 1. Extract this ZIP.
-2. Upload the **contents** of the extracted `guildenheim-v081` directory to the root of your GitHub repository. Preserve the `css`, `data`, and `js` folder names.
+2. Upload the **contents** of the extracted `guildenheim-v09` directory to the root of your GitHub repository. Preserve the `css`, `data`, and `js` folder names.
 3. Under GitHub repository Settings → Pages, publish `main` from `/ (root)`.
 4. Hard refresh after deployment to clear cached old files.
 
@@ -64,6 +68,9 @@ This is a **complete replacement**, not a ZIP containing only changed files. Old
 | Ranged crafting mechanics and save logic | `js/ranged.js` |
 | Shared item output fields and parchment rendering | `js/item-card.js` |
 | Shared card visuals, ranged-specific details | `css/item-card.css` |
+| Official armor/shield blueprints and component options | `data/armor.js` |
+| Armor construction, AC previews, DM evaluation and discoveries | `js/armor.js` |
+| Global crafting time tiers | `js/crafting-time.js` |
 | 2014 weapon properties and explanations | `data/properties.js` |
 | Melee/Ranged/Armor/Magic category descriptions | `js/app.js` → `craftingCategories` |
 | Navbar and placeholder appearance | `css/categories.css` |
@@ -136,6 +143,39 @@ This is a **complete replacement**, not a ZIP containing only changed files. Old
 3. Add the matching official catalog ID and `[market price, weight lb]` pair to `data/weapon-stats.js`. For **homebrew weapons**, create a different catalog and do not label their prices as official.
 4. Tune `rangedAssessment()` and `rangedOutcome()` in `js/ranged.js` for homebrew units, compatibility, success chance, and time. These are intentionally independent of melee construction rules.
 5. Keep export formats compatible when extending the save schema. `RANGED_SAVE_KEY` is stable for browser-local discovery backups.
+
+## v0.9 — Armor, shields, and in-game crafting time
+
+- **Armor** is now a functional category, with the 3 light, 5 medium, and 4 heavy armor types plus the shield from D&D 5e 2014 equipment.
+- Each standard armor item stores **base AC, Dexterity limits, Strength requirement, stealth penalty, price, and weight**. A shield adds +2 to the wearer's existing AC. Heavy armor ignores the Dexterity modifier, even when negative.
+- Players choose a **shell, material, lining, fasteners, reinforcement, and workmanship**; they see validity and base abstract material units without skill reductions or inventory management.
+- The DM enters **craft skill**, **difficulty**, and the **wearer's Dex modifier** for a sample AC calculation. Procedural armor variants display the closest 2014 formula only as a DM-approved reference, never an automatic AC bonus.
+- Armor uses the shared parchment item card, with a homebrew **physical profile** (mass, coverage, integrity, mobility), success %, dice recommendation, and construction assessment.
+- Armor designs can be exported as player JSON, imported in DM mode, saved as discoveries, reopened, and advanced through **Prototype → Established → Mastered**. DM recipe backups now include armor discoveries.
+- Added `leather`, `cloth`, and `hide` to the material database. Existing IDs and local saves remain compatible.
+
+### In-game crafting time (melee, ranged, armor)
+
+`js/crafting-time.js` now estimates tabletop durations instead of assigning hours to everything:
+
+| Tier | Base time | Example |
+|---|---|---|
+| Tiny | 1 turn (6 seconds) | Assembling a prepared dart or sling |
+| Small | 10 rounds (1 minute) | Joining a small set of prepared parts |
+| Medium | 2 hours | Longsword, shortbow, leather armor, shield |
+| Large | 12 hours | Heavy weapon, large crossbow, medium armor |
+| Massive | 24 hours | Full chain, splint, or plate armor |
+
+Complexity extends the duration, while crafting proficiency and a mastered recipe reduce it. A single attempt is capped at 24 hours. These are **homebrew campaign-pacing rules**, not official 2014 crafting times. **Turn-scale results presume all raw materials are already prepared**; mining, smelting, curing hide, and other preparation still take DM-determined time.
+
+### Developer guide: tune time and armor
+
+1. Edit `craftingTimeBases` in `js/crafting-time.js` to change tier baselines (measured in seconds).
+2. Adjust the `multiplier` in `calculateCraftingTime()` for complexity, proficiency, or mastery effects.
+3. Melee size mapping lives in `skillOutcome()` in `js/engine.js`; ranged mapping is in `rangedOutcome()` in `js/ranged.js`; armor tiers are declared under `armorShells` in `data/armor.js`.
+4. Add or edit official armor entries under `armorRecipes` in `data/armor.js`. Keep standard AC, cost, weight, Strength, and stealth values separate from homebrew material and crafting data.
+5. Edit `armorAssessment()` and `armorOutcome()` in `js/armor.js` to tune abstract coverage, mobility, material cost, success chance, and DM assessment. `armorACDescription()` and `armorACValue()` implement the 2014 AC display rules.
+6. To add a new item category, reuse `renderEquipmentCard()` from `js/item-card.js` and keep official baseline data distinct from experimental outputs.
 
 ## Developer guide — editing GuildenHeim manually
 

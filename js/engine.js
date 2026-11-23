@@ -19,8 +19,13 @@ function skillOutcome(a,b,experimental,recipeStage='experimental'){
   const complexity=Math.max(0,(experimental?2:0)+(a.status==='conditional'?2:0)+(b.quality==='masterwork'?2:b.quality==='fine'?1:0)+dmDifficulty+materialDifficulty+technique.complexity-(mastered?1:0));
   const cost=ingredients.reduce((total,item)=>total+item.quantity,0);
   const chance=a.status==='invalid'?0:Math.max(5,Math.min(95,70+level*6-complexity*10-(b.quality==='crude'?5:0)+(mastered?5:0)));
-  const hours=Math.max(1,Math.ceil((8+complexity*4+a.mass*2+technique.hours)*(1-.08*level)*(mastered?.9:1)));
-  return {cost,chance,hours,ingredients,complexity,materialDifficulty};
+  // Time tiers are based on item size rather than a universal hour formula.
+  // Tiny known parts can take a turn; larger forge work can take 12–24 hours.
+  const size=b.headSize==='small'&&b.handleSize==='short'?'tiny':
+    b.headSize==='small'?'small':b.headSize==='large'?'large':
+    b.handleSize==='long'?'large':'medium';
+  const time=calculateCraftingTime({size,complexity:complexity+Math.max(0,technique.hours/4),skill:level,mastered});
+  return {cost,chance,hours:time.seconds/3600,timeLabel:time.label,timeSeconds:time.seconds,ingredients,complexity,materialDifficulty};
 }
 function assess(b){
   const h=heads[b.head],gr=handles[b.handle],hm=materials[b.headMaterial],gm=materials[b.handleMaterial];

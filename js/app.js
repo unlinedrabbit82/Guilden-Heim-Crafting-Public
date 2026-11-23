@@ -11,7 +11,7 @@ const craftingCategories={
   magic:{title:'Magic crafting',symbol:'✦',description:'Combine an item base with magical focuses, runes, and reagents. Future rules will include attunement, rarity, magical effects, and DM-controlled discovery.',examples:['Wand · core + focus + binding','Enchanted weapon · base item + rune','Wondrous item · vessel + catalyst']}
 };
 function selectCraftCategory(category){
-  const isMelee=category==='melee',isRanged=category==='ranged';
+  const isMelee=category==='melee',isRanged=category==='ranged',isArmor=category==='armor';
   if(!isMelee&&!craftingCategories[category])return;
   // Switching workshops never carries over an evaluated DM result.
   document.body.classList.remove('evaluated');
@@ -22,8 +22,9 @@ function selectCraftCategory(category){
   });
   $('meleeWorkspace').hidden=!isMelee;
   $('rangedWorkspace').hidden=!isRanged;
-  $('categoryPlaceholder').hidden=isMelee||isRanged;
-  if(isMelee||isRanged)return;
+  $('armorWorkspace').hidden=!isArmor;
+  $('categoryPlaceholder').hidden=isMelee||isRanged||isArmor;
+  if(isMelee||isRanged||isArmor)return;
   const info=craftingCategories[category];
   $('placeholderTitle').textContent=info.title;
   $('placeholderSymbol').textContent=info.symbol;
@@ -227,7 +228,7 @@ function render(){
   renderIngredients(skill.ingredients);
   $('costStat').textContent=`${skill.cost} units`;
   $('chanceStat').textContent=`${skill.chance}%`;
-  $('timeStat').textContent=`${skill.hours} h`;
+  $('timeStat').textContent=skill.timeLabel;
   const d20SuccessFaces=Math.round(skill.chance/5);
   const d20Approximation=d20SuccessFaces===0?'No successful faces on a d20':`roll ${21-d20SuccessFaces}–20 on a d20`;
   $('diceRecommendation').textContent=skill.chance===0
@@ -292,7 +293,7 @@ function attemptCraft(){
     experience=` ${name} earned ${earned} crafting XP.`;
   }
   $('saveMessage').textContent=success
-    ?`Success! Rolled ${roll} against ${stats.chance}%. ${experimental?'Discovery may be recorded.':'Crafting succeeded; you may record a variant.'} ${stats.cost} material units; ${stats.hours} hours.${experience}`
+    ?`Success! Rolled ${roll} against ${stats.chance}%. ${experimental?'Discovery may be recorded.':'Crafting succeeded; you may record a variant.'} ${stats.cost} material units; ${stats.timeLabel}.${experience}`
     :`Attempt failed (rolled ${roll}; needed ${stats.chance} or less). The DM decides if materials are consumed.${experience}`;
   render();
 }
@@ -321,9 +322,9 @@ function save(){
   $('saveMessage').textContent='Saved locally as a provisional discovery. Export to back it up.';render();
 }
 function exportData(){
-  // v0.8 backups include the separate ranged discovery archive.
-  const ranged=localJSON(RANGED_SAVE_KEY,[]);
-  const blob=new Blob([JSON.stringify({app:'guildenheim',version:3,discoveries:discovered,rangedDiscoveries:Array.isArray(ranged)?ranged:[]},null,2)],{type:'application/json'});
+  // DEV: One backup contains all craft categories, without player inventory.
+  const ranged=localJSON(RANGED_SAVE_KEY,[]),armor=localJSON(ARMOR_SAVE_KEY,[]);
+  const blob=new Blob([JSON.stringify({app:'guildenheim',version:4,discoveries:discovered,rangedDiscoveries:Array.isArray(ranged)?ranged:[],armorDiscoveries:Array.isArray(armor)?armor:[]},null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='guildenheim-recipes.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function exportPlayerDesign(){
@@ -347,6 +348,14 @@ function exportPlayerDesign(){
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 async function importData(file){if(!file)return;try{if(file.size>1024*1024)throw Error('File exceeds 1 MB');const data=JSON.parse(await file.text());
+  if(data.format==='guildenheim-armor-design'){
+    const b=data.components||{};
+    if(!armorShells[b.shell]||!materials[b.material]||!armorLinings[b.lining]||!armorFastenings[b.fastening]||!armorReinforcements[b.reinforcement]||!['crude','standard','fine','masterwork'].includes(b.quality))throw Error('Invalid armor design components');
+    selectCraftCategory('armor');armorExperiment=true;armorDiscoveryId=null;armorDiscoveryName='';
+    for(const [id,value] of [['armorShell',b.shell],['armorMaterial',b.material],['armorLining',b.lining],['armorFastening',b.fastening],['armorReinforcement',b.reinforcement],['armorQuality',b.quality]])$(id).value=value;
+    $('armorNotes').value=typeof b.notes==='string'?b.notes.slice(0,3000):'';
+    armorInvalidate();armorRender();$('armorMessage').textContent='Armor player design loaded. Generate the DM evaluation to review it.';return;
+  }
   if(data.format==='guildenheim-ranged-design'){
     const b=data.components||{};
     if(!rangedParts.frames[b.frame]||!rangedParts.mechanisms[b.mechanism]||!rangedParts.grips[b.grip]||!materials[b.material]||!['crude','standard','fine','masterwork'].includes(b.quality))throw Error('Invalid ranged design components');
@@ -388,6 +397,13 @@ async function importData(file){if(!file)return;try{if(file.size>1024*1024)throw
     }).map((item,i)=>({id:`ranged_import_${Date.now()}_${i}`,name:item.name,build:{...item.build,notes:String(item.build.notes||'').slice(0,3000)},stage:'prototype',approved:false,createdAt:new Date().toISOString()}));
     const previous=localJSON(RANGED_SAVE_KEY,[]);
     localSave(RANGED_SAVE_KEY,[...(Array.isArray(previous)?previous:[]),...restored].slice(-200));
+  }
+  if(Array.isArray(data.armorDiscoveries)){
+    const restored=data.armorDiscoveries.slice(0,200).filter(item=>{
+      const b=item?.build;return typeof item?.name==='string'&&item.name.length<=70&&b&&armorShells[b.shell]&&materials[b.material]&&armorLinings[b.lining]&&armorFastenings[b.fastening]&&armorReinforcements[b.reinforcement]&&['crude','standard','fine','masterwork'].includes(b.quality);
+    }).map((item,i)=>({id:`armor_import_${Date.now()}_${i}`,name:item.name,build:{...item.build,notes:String(item.build.notes||'').slice(0,3000)},stage:'prototype',approved:false,createdAt:new Date().toISOString()}));
+    const previous=localJSON(ARMOR_SAVE_KEY,[]);
+    localSave(ARMOR_SAVE_KEY,[...(Array.isArray(previous)?previous:[]),...restored].slice(-200));
   }
   render();$('saveMessage').textContent=`Imported ${clean.length} recipes.`;
 }catch(e){alert(`Could not import: ${e.message}`)}finally{$('importFile').value=''}}

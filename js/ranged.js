@@ -57,8 +57,9 @@ function rangedOutcome(b,a,level,difficulty){
   const unapproved=provisional&&!(matching&&discovery?.approved);
   const complexity=Math.max(0,(unapproved?2:0)+(a.status==='conditional'?2:0)+(b.quality==='masterwork'?2:b.quality==='fine'?1:0)+Math.max(0,difficulty)+rating(b.material,'workability')-(mastered?1:0));
   const chance=a.status==='invalid'?0:Math.max(5,Math.min(95,70+6*level-10*complexity-(b.quality==='crude'?5:0)+(mastered?5:0)));
-  const hours=Math.max(1,Math.ceil((8+complexity*4+a.mass*2)*(1-.08*level)*(mastered?.9:1)));
-  return {chance,hours,units:rangedAssessment(b,level).units};
+  const size={dart:'tiny',sling:'tiny',tube:'small',net:'small',bow:b.grip==='long'?'large':'medium',crossbow:b.grip==='long'?'large':b.grip==='short'?'small':'medium'}[b.frame]||'medium';
+  const time=calculateCraftingTime({size,complexity,skill:level,mastered});
+  return {chance,hours:time.seconds/3600,timeLabel:time.label,timeSeconds:time.seconds,units:rangedAssessment(b,level).units};
 }
 function rangedInvalidate(){rangedSuccessKey=null;document.body.classList.remove('evaluated');ranged$('rangedMessage').textContent='';}
 function rangedKey(b){return JSON.stringify([b,ranged$('rangedSkill').value,ranged$('rangedDifficulty').value]);}
@@ -123,7 +124,7 @@ function rangedRender(){
   ranged$('rangedReasons').replaceChildren(...reasons.map(reason=>{const li=document.createElement('li');li.textContent=reason;return li;}));
   ranged$('rangedCost').textContent=`${result.units} units`;
   ranged$('rangedChance').textContent=`${result.chance}%`;
-  ranged$('rangedTime').textContent=`${result.hours} h`;
+  ranged$('rangedTime').textContent=result.timeLabel;
   ranged$('rangedDice').textContent=result.chance===0?'No roll: this assembly is incompatible.':`Roll 1d100: success on 01–${String(result.chance).padStart(2,'0')}. d20 approximation: roll ${21-Math.round(result.chance/5)}–20 (${Math.round(result.chance/5)*5}%).`;
   const isApproved=exact||!!discovery?.approved;
   const referenceExplanation=a.status==='invalid'?'Fix incompatible parts before treating this as usable.':exact?'Matches a 2014 weapon blueprint. Crafting success, cost, and physical scores are homebrew.':isApproved?'This discovered design has been approved by the DM. Its combat statistics still require a specific campaign ruling.':'This experimental design uses the nearest standard weapon as a baseline reference; shown damage and properties are NOT granted until the DM rules on the finished item.';
@@ -164,7 +165,7 @@ function rangedAttempt(){
   const r=rangedOutcome(b,a,Number(ranged$('rangedSkill').value),Number(ranged$('rangedDifficulty').value));
   const roll=1+Math.floor(Math.random()*100),success=roll<=r.chance;
   rangedSuccessKey=success?rangedKey(b):null;
-  rangedRender();ranged$('rangedMessage').textContent=`${success?'Success':'Failure'}: rolled ${roll} against ${r.chance}%. ${r.units} abstract material units, ${r.hours} crafting hours. DM decides whether failed attempts consume materials.`;
+  rangedRender();ranged$('rangedMessage').textContent=`${success?'Success':'Failure'}: rolled ${roll} against ${r.chance}%. ${r.units} abstract material units, ${r.timeLabel} crafting time. DM decides whether failed attempts consume materials.`;
 }
 function rangedSave(){
   if(!document.body.classList.contains('dm-mode')||!document.body.classList.contains('evaluated'))return;

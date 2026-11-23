@@ -1,6 +1,6 @@
 # GuildenHeim — GitHub Pages Edition
 
-**Version 0.9.1.** Static, client-side D&D crafting workbench. It includes all 37 standard 2014 weapons (28 melee, 9 ranged) and all 13 standard 2014 armor/shield entries, shared parchment-style DM result cards, player component estimates, discovery progression, and tiered crafting times. Magic remains a placeholder.
+**Version 0.9.2.** Static, client-side D&D crafting workbench. It includes all 37 standard 2014 weapons (28 melee, 9 ranged), all 13 standard armor/shield entries, shared parchment-style DM result cards, discovery progression, tiered crafting times, and contextual component help. Magic remains a placeholder.
 
 ## Folder layout
 
@@ -13,6 +13,7 @@ guildenheim/
 │   ├── ranged.css          # Ranged crafting interface
 │   ├── item-card.css       # Shared parchment card appearance
 │   ├── armor.css           # Armor/shield workbench
+│   ├── help.css            # Contextual tooltip appearance
 │   ├── skill.css           # Skill panel styling
 │   ├── dm.css              # Player/DM visibility
 │   └── player.css          # Player notes styling
@@ -33,7 +34,8 @@ guildenheim/
     ├── item-card.js        # Reusable parchment result renderer
     ├── app.js              # Melee UI, shared navigation, exports
     ├── ranged.js           # Ranged UI, evaluations, discoveries
-    └── armor.js            # Armor UI, AC, evaluations, discoveries
+    ├── armor.js            # Armor UI, AC, evaluations, discoveries
+    └── help.js             # Hover/click/focus explanations
 ```
 
 The JavaScript files are **classic deferred scripts** loaded in the order shown in `index.html`. Do not reorder them without refactoring dependencies. This avoids a build tool or package manager and works on GitHub Pages.
@@ -41,7 +43,7 @@ The JavaScript files are **classic deferred scripts** loaded in the order shown 
 ## GitHub Pages setup
 
 1. Extract this ZIP.
-2. Upload the **contents** of the extracted `guildenheim-v091` directory to the root of your GitHub repository. Preserve the `css`, `data`, and `js` folder names.
+2. Upload the **contents** of the extracted `guildenheim-v092` directory to the root of your GitHub repository. Preserve the `css`, `data`, and `js` folder names.
 3. Under GitHub repository Settings → Pages, publish `main` from `/ (root)`.
 4. Hard refresh after deployment to clear cached old files.
 
@@ -71,6 +73,8 @@ This is a **complete replacement**, not a ZIP containing only changed files. Old
 | Official armor/shield blueprints and component options | `data/armor.js` |
 | Armor construction, AC previews, DM evaluation and discoveries | `js/armor.js` |
 | Global crafting time tiers | `js/crafting-time.js` |
+| Tooltip field explanations and rules | `js/help.js` |
+| Tooltip layout and accessibility styles | `css/help.css` |
 | 2014 weapon properties and explanations | `data/properties.js` |
 | Melee/Ranged/Armor/Magic category descriptions | `js/app.js` → `craftingCategories` |
 | Navbar and placeholder appearance | `css/categories.css` |
@@ -143,6 +147,17 @@ This is a **complete replacement**, not a ZIP containing only changed files. Old
 3. Add the matching official catalog ID and `[market price, weight lb]` pair to `data/weapon-stats.js`. For **homebrew weapons**, create a different catalog and do not label their prices as official.
 4. Tune `rangedAssessment()` and `rangedOutcome()` in `js/ranged.js` for homebrew units, compatibility, success chance, and time. These are intentionally independent of melee construction rules.
 5. Keep export formats compatible when extending the save schema. `RANGED_SAVE_KEY` is stable for browser-local discovery backups.
+
+## v0.9.2 — contextual help from beta feedback
+
+- Contextual **?** help buttons are available beside component, material, shape, workmanship, technique, skill, and difficulty selectors across Melee, Ranged, and Armor.
+- Help works on **hover, keyboard focus, click, or tap**. Click outside or press Escape to dismiss a clicked tooltip.
+- Descriptions update for the **currently selected dropdown option**. This avoids unreliable hover behavior inside native dropdown lists.
+- Main physical/crafting metrics and the DM's editable material ratings also have explanations.
+- Specific component descriptions live with their definitions (`data/materials.js`, `data/components.js`, `data/ranged.js`, and `data/armor.js`). Generic option and metric descriptions live in `js/help.js`.
+- Help is informative only and does not change crafting calculations or reveal DM-only results to players.
+
+**DEV:** Add or edit a component's `description` / `help` text alongside its data definition. For a new selector, register its ID in `helpFields` in `js/help.js`. For a new output metric, extend `helpMetrics`. Adjust presentation in `css/help.css`. Run `node tests/smoke.js` to verify component description coverage.
 
 ## v0.9 — Armor, shields, and in-game crafting time
 

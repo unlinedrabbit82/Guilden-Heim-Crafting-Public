@@ -27,3 +27,27 @@ const handles = {
   ,flexible:{name:'Flexible grip',mass:.5,length:1,integrity:3,hands:1}
 };
 const sizeMultiplier={short:.65,small:.75,medium:1,long:1.4,large:1.55};
+/* DEV: Component descriptions appear in contextual help automatically. */
+const headDescriptions={
+  blade:'A versatile forged blade. Its shape and length influence the closest standard sword reference.',
+  dagger:'A compact blade suited to smaller piercing or cutting designs.',
+  spear:'A pointed head designed for mounting on a shaft. Commonly suited to thrusting weapons.',
+  hammer:'A solid striking head intended to deliver bludgeoning force.',
+  axe:'A weighted cutting head. Its mass affects leverage and handling.',
+  mace:'A compact striking head with blunt, flanged, or spiked forms.',
+  poleblade:'A long blade mounted on a pole, suitable for experimental reach weapons.',
+  staff:'A simple wooden or reinforced striking end used in clubs and staves.',
+  flail:'A flexible chain-linked striking head. The connection introduces handling considerations.',
+  pick:'A narrow pointed head intended to concentrate force into a piercing strike.',
+  whip:'A flexible lash designed for extended reach rather than heavy impact.'
+};
+const handleDescriptions={
+  grip:'A balanced one-handed grip, suited to many swords and compact striking weapons.',
+  short:'A short grip for small weapons, with less room for leverage or counterweights.',
+  pole:'A long shaft that extends the weapon, often creating a two-handed construction.',
+  haft:'A reinforced handle intended to support heavier striking heads.',
+  great:'A long two-handed hilt used with large blades and heavy weapons.',
+  flexible:'A compact handle suitable for a flexible lash.'
+};
+for(const [id,item] of Object.entries(heads))item.description=headDescriptions[id];
+for(const [id,item] of Object.entries(handles))item.description=handleDescriptions[id];

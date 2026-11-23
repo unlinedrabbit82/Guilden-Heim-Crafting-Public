@@ -113,6 +113,9 @@ function createDMTools(){
       input.style.cssText='display:block;width:100%;margin-top:5px;padding:8px;border-radius:5px;border:1px solid var(--line);background:#14252b;color:var(--text)';
       container.append(input);area.append(container);
     }
+    // Help is loaded after the initial UI setup; it also reattaches whenever
+    // the DM changes which material is being edited.
+    if(typeof installMaterialRatingHelp==='function')installMaterialRatingHelp();
   };
   $('materialEditorSelect').addEventListener('change',updateEditor);
   $('saveMaterial').addEventListener('click',()=>{

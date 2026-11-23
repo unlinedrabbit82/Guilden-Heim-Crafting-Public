@@ -30,3 +30,17 @@ const materialDefaults={
   cloth:{hardness:1,toughness:2,flexibility:9,magic:1,workability:0},
   hide:{hardness:3,toughness:5,flexibility:6,magic:1,workability:0}
 };
+/* DEV: Tooltips use each material's longer help description if available. */
+const materialHelp={
+  steel:'Durable, dependable metal for many conventional weapons and armor. Balanced mass and workability make it a common baseline.',
+  iron:'A dense workable metal suited to ordinary equipment, though it is less resilient than refined steel.',
+  mithral:'A lightweight fantasy metal with high magical affinity. Reduces reference mass, but increases crafting difficulty.',
+  adamantine:'An exceptionally hard, heavy fantasy metal with strong durability and difficult workmanship.',
+  oak:'A sturdy hardwood well suited to handles, shafts, stocks, and wooden protective structures.',
+  ash:'A lighter, flexible hardwood suited to shafts and bow limbs where bending matters.',
+  bone:'A light organic material with limited toughness; unusual designs may require reinforcement.',
+  leather:'Flexible prepared hide suited to armor panels, straps, backing, and comfortable grips.',
+  cloth:'Light woven material for padding, straps, and lining. Not suitable as a rigid metal substitute.',
+  hide:'Thick untreated or minimally processed animal hide, suited to rugged protective layers.'
+};
+for(const [id,item] of Object.entries(materials))item.help=materialHelp[id]||item.description;

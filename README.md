@@ -15,7 +15,8 @@ guildenheim/
 ├── data/
 │   ├── materials.js        # Material definitions and ratings
 │   ├── components.js       # Heads, handles, size factors
-│   └── recipes.js          # 19 standard weapon blueprints
+│   ├── recipes.js          # 19 standard weapon blueprints
+│   └── techniques.js       # Crafting technique rules
 └── js/
     ├── storage.js          # Local saves and XP state
     ├── engine.js           # Cost, compatibility, classification
@@ -49,6 +50,17 @@ This is a **complete replacement**, not a ZIP containing only changed files. Old
 | Material types | `data/materials.js` |
 | Weapon heads and handles | `data/components.js` |
 | Standard recipes | `data/recipes.js` |
+| Crafting technique bonuses and costs | `data/techniques.js` |
 | Compatibility and generated stats | `js/engine.js` |
 | Buttons, forms, or export logic | `js/app.js` |
 | Colors and layout | `css/styles.css` |
+
+## v0.6 crafting techniques and discoveries
+
+- Players can choose **Standard construction, Tempering, Reinforcement, Precision forging, Weight balancing, Lamination, or Specialized mounting**.
+- Technique effects are reflected in the player-visible base material estimate and compatibility status; the DM sees proficiency-adjusted costs, difficulty, time, handling and integrity.
+- Specialized mounting changes incompatible joints into **conditional** constructions requiring DM approval, rather than automatically validating every connection.
+- Successful experimental crafting may be saved as a **Prototype**.
+- A DM can advance saved discoveries from **Prototype → Established → Mastered** using the DM review screen. Previously saved discoveries without a stage are treated as Prototypes.
+- Mastered recipes have a provisional reliability/efficiency improvement (+5 percentage points to crafting success, 10% faster, and 1 less complexity). These are homebrew defaults for playtesting.
+- The DM must explicitly approve each stage advancement. No inventory is tracked.

@@ -76,6 +76,18 @@ function createPlayerEstimate(){
     <p id="playerEstimateNote" style="font-size:12px;color:var(--muted);line-height:1.5;margin:0"></p>`;
   notes.insertAdjacentElement('afterend',section);
 }
+function createTechniqueControl(){
+  const section=document.createElement('section');
+  section.className='panel';section.style.cssText='margin-top:18px;padding:18px';
+  const label=document.createElement('label');label.htmlFor='techniqueSelect';label.textContent='Crafting technique';
+  label.style.cssText='display:block;font-family:Cinzel,serif;font-weight:600;margin-bottom:10px';
+  const select=document.createElement('select');select.id='techniqueSelect';
+  const detail=document.createElement('p');detail.id='techniqueDescription';detail.style.cssText='font-size:13px;line-height:1.5;color:var(--muted);margin:10px 0 0';
+  section.append(label,select,detail);
+  document.querySelector('.workshop .component-grid').insertAdjacentElement('afterend',section);
+  options('techniqueSelect',Object.entries(craftingTechniques).map(([id,t])=>[id,t.name]));
+  select.addEventListener('change',()=>{invalidateEvaluation();render()});
+}
 function renderPlayerEstimate(build,assessment){
   const status={valid:'✓ Valid construction',conditional:'! Conditionally valid — DM review required',invalid:'× Invalid as assembled'};
   if(!$('playerValidity'))return;
@@ -100,17 +112,35 @@ function options(id,values){const el=$(id);el.replaceChildren(...values.map(([va
 function materialChoices(id){options(id,Object.entries(materials).map(([k,v])=>[k,v.name]))}
 function chooseRecipe(id){const entry=recipes.find(r=>r.id===id)||discovered.find(r=>r.id===id);if(!entry)return;selected=id;mode='recipe';successfulAttemptKey=null;invalidateEvaluation();setMode();loadBuild(entry.build||entry);render()}
 function setMode(){$('recipeMode').classList.toggle('selected',mode==='recipe');$('experimentMode').classList.toggle('selected',mode==='experiment');$('modeBadge').textContent=mode==='recipe'?'KNOWN RECIPE':'EXPERIMENTAL BUILD';$('craftSubtitle').textContent=mode==='recipe'?'Customize a familiar recipe with your own materials and parts.':'Try an unconventional combination; the system suggests a ruling for your DM.'}
-function loadBuild(r){$('headSelect').value=r.head;$('handleSelect').value=r.handle;$('headMaterial').value=r.headMaterial;$('handleMaterial').value=r.handleMaterial;$('headSize').value=r.headSize||'medium';$('handleSize').value=r.handleSize||'medium';$('mountSelect').value=r.mount||heads[r.head].mount;$('pommelSelect').value=r.pommel||'none';$('qualitySelect').value=r.quality||'standard';updateShapes(r.shape);$('notesInput').value=r.notes||''}
+function loadBuild(r){$('headSelect').value=r.head;$('handleSelect').value=r.handle;$('headMaterial').value=r.headMaterial;$('handleMaterial').value=r.handleMaterial;$('headSize').value=r.headSize||'medium';$('handleSize').value=r.handleSize||'medium';$('mountSelect').value=r.mount||heads[r.head].mount;$('pommelSelect').value=r.pommel||'none';$('qualitySelect').value=r.quality||'standard';$('techniqueSelect').value=craftingTechniques[r.technique]?r.technique:'none';updateShapes(r.shape);$('notesInput').value=r.notes||''}
 function updateShapes(preferred){const list=heads[$('headSelect').value].shapes;const current=preferred||$('headShape').value;options('headShape',list.map(s=>[s,s[0].toUpperCase()+s.slice(1)]));$('headShape').value=list.includes(current)?current:list[0]}
-function getBuild(){return {head:$('headSelect').value,handle:$('handleSelect').value,headMaterial:$('headMaterial').value,handleMaterial:$('handleMaterial').value,headSize:$('headSize').value,handleSize:$('handleSize').value,shape:$('headShape').value,mount:$('mountSelect').value,pommel:$('pommelSelect').value,quality:$('qualitySelect').value,notes:$('notesInput').value.trim()}}
-function isDefault(b,r){return ['head','handle','headMaterial','handleMaterial','headSize','handleSize','shape','mount','pommel'].every(k=>(b[k]||'none')===(r[k]||'none'))}
-function renderRecipeList(){const list=$('recipeList');list.replaceChildren();[...recipes,...discovered].forEach(r=>{const btn=document.createElement('button');btn.className='recipe-button'+(mode==='recipe'&&selected===r.id?' active':'');const ico=document.createElement('span');ico.className='recipe-icon';ico.textContent=heads[(r.build||r).head]?.glyph||'⚔';const info=document.createElement('span');const title=document.createElement('strong');title.textContent=r.name;const subtitle=document.createElement('small');subtitle.textContent=r.build?'Discovered recipe':'Standard blueprint';info.append(title,subtitle);btn.append(ico,info);btn.addEventListener('click',()=>chooseRecipe(r.id));list.append(btn)});$('recipeCount').textContent=recipes.length+discovered.length}
+function getBuild(){return {head:$('headSelect').value,handle:$('handleSelect').value,headMaterial:$('headMaterial').value,handleMaterial:$('handleMaterial').value,headSize:$('headSize').value,handleSize:$('handleSize').value,shape:$('headShape').value,mount:$('mountSelect').value,pommel:$('pommelSelect').value,quality:$('qualitySelect').value,technique:$('techniqueSelect').value,notes:$('notesInput').value.trim()}}
+function isDefault(b,r){return ['head','handle','headMaterial','handleMaterial','headSize','handleSize','shape','mount','pommel'].every(k=>(b[k]||'none')===(r[k]||'none'))&&(b.technique||'none')===(r.technique||'none')}
+function renderRecipeList(){const list=$('recipeList');list.replaceChildren();[...recipes,...discovered].forEach(r=>{const btn=document.createElement('button');btn.className='recipe-button'+(mode==='recipe'&&selected===r.id?' active':'');const ico=document.createElement('span');ico.className='recipe-icon';ico.textContent=heads[(r.build||r).head]?.glyph||'⚔';const info=document.createElement('span');const title=document.createElement('strong');title.textContent=r.name;const subtitle=document.createElement('small');subtitle.textContent=r.build?(r.stage||'prototype').replace(/^./,c=>c.toUpperCase()):'Standard blueprint';info.append(title,subtitle);btn.append(ico,info);btn.addEventListener('click',()=>chooseRecipe(r.id));list.append(btn)});$('recipeCount').textContent=recipes.length+discovered.length}
+function createDiscoveryControls(){
+  const button=document.createElement('button');button.id='advanceDiscovery';button.className='outline full';
+  button.style.marginTop='8px';button.textContent='Advance recipe stage';
+  $('saveButton').insertAdjacentElement('afterend',button);
+  button.addEventListener('click',()=>{
+    if(!document.body.classList.contains('dm-mode'))return;
+    const recipe=discovered.find(r=>r.id===selected);if(!recipe)return;
+    const stages=['experimental','prototype','established','mastered'];
+    const current=stages.indexOf(recipe.stage||'prototype');
+    if(current===stages.length-1)return;
+    const next=stages[current+1];
+    if(!window.confirm(`DM approval: advance ${recipe.name} from ${recipe.stage||'prototype'} to ${next}?`))return;
+    recipe.stage=next;recipe.approved=['established','mastered'].includes(next);
+    if(!persist()){$('saveMessage').textContent='Unable to save recipe stage.';return}
+    invalidateEvaluation();$('saveMessage').textContent=`Recipe advanced to ${next}. Reevaluate for updated crafting requirements.`;render();
+  });
+}
 function render(){
   const b=getBuild(),a=assess(b),base=recipes.find(r=>r.id===selected)||discovered.find(r=>r.id===selected),exact=mode==='recipe'&&base&&isDefault(b,base.build||base);
+  $('techniqueDescription').textContent=(craftingTechniques[b.technique]||craftingTechniques.none).description;
   renderPlayerEstimate(b,a);
   const classification=classifyWeapon(b,a),closest=classification.reference;
-  const reference=exact?base:closest, provisional=!exact;
-  const skill=skillOutcome(a,b,provisional||mode==='experiment');
+  const reference=exact?base:closest,stage=base?.stage||'experimental',provisional=!exact||(!!base?.build&&!base.approved);
+  const skill=skillOutcome(a,b,provisional||mode==='experiment',exact?stage:'experimental');
   renderIngredients(skill.ingredients);
   $('costStat').textContent=`${skill.cost} units`;
   $('chanceStat').textContent=`${skill.chance}%`;
@@ -128,14 +158,16 @@ function render(){
   const statusText={valid:'✓ Construction looks viable',conditional:'! Requires DM review',invalid:'× Incompatible as assembled'};
   $('compatibility').className=a.status;$('compatibility').textContent=statusText[a.status];const reasons=$('reasonList');reasons.replaceChildren(...a.reasons.map(s=>{const li=document.createElement('li');li.textContent=s;return li}));
   const tagLine=document.createElement('li');tagLine.textContent=`Component tags: ${classification.tags.join(', ')}`;reasons.append(tagLine);
-  const recommendationLine=document.createElement('li');recommendationLine.textContent=exact?`Established recipe properties: ${reference.properties.join(', ')||'None'}`:`Suggested properties (not granted): ${classification.recommendations.join(', ')||'None'}`;reasons.append(recommendationLine);
+  const recommendationLine=document.createElement('li');recommendationLine.textContent=exact&&!provisional?`Established recipe properties: ${reference.properties.join(', ')||'None'}`:`Suggested properties (not granted): ${classification.recommendations.join(', ')||'None'}`;reasons.append(recommendationLine);
   $('weaponGlyph').textContent=heads[b.head].glyph;$('categoryLabel').textContent=provisional?'PROVISIONAL HOMEBREW ITEM':reference.kind.toUpperCase();$('itemName').textContent=name;$('damageStat').textContent=reference.damage;$('damageTypeStat').textContent=exact?reference.type:classification.type;
-  const pills=$('propertyPills');pills.replaceChildren(...(exact?reference.properties:classification.recommendations).map(s=>{const span=document.createElement('span');span.textContent=s;return span}));
+  const pills=$('propertyPills');pills.replaceChildren(...(exact&&!provisional?reference.properties:classification.recommendations).map(s=>{const span=document.createElement('span');span.textContent=s;return span}));
   $('itemDescription').textContent=exact?reference.description:`A ${b.shape} ${heads[b.head].name.toLowerCase()} with a ${handles[b.handle].name.toLowerCase()}, constructed from ${materials[b.headMaterial].name.toLowerCase()} and ${materials[b.handleMaterial].name.toLowerCase()}.`;
   $('rulingText').textContent=a.status==='invalid'?'Fix the incompatible mount before treating the item as usable. '+`Closest reference: ${closest.name}.`:provisional?`Classified as ${classification.classification}. Closest baseline: ${closest.name} (${closest.damage} ${closest.type.toLowerCase()}). Properties shown are suggestions only; the DM must approve the final result.`:'Matches the saved blueprint. Standard recipe statistics apply; abstract physical scores are only a crafting reference.';
   $('attemptButton').disabled=a.status==='invalid';
   $('saveButton').disabled=a.status==='invalid'||successfulAttemptKey!==currentAttemptKey();
   $('saveButton').textContent=exact&&base?.build?'Update discovered recipe':'Save as discovered recipe';renderRecipeList();
+  $('advanceDiscovery').disabled=!base?.build||!exact||stage==='mastered';
+  $('advanceDiscovery').textContent=base?.build?`Advance: ${stage==='mastered'?'Mastered':stage==='experimental'?'Experimental → Prototype':stage==='prototype'?'Prototype → Established':'Established → Mastered'}`:'Advance recipe stage';
 }
 function makeExperiment(){mode='experiment';selected='';successfulAttemptKey=null;invalidateEvaluation();setMode();$('saveMessage').textContent='';render()}
 function invalidateEvaluation(){document.body.classList.remove('evaluated');successfulAttemptKey=null}
@@ -156,8 +188,10 @@ function attemptCraft(){
   if(!document.body.classList.contains('dm-mode')||!document.body.classList.contains('evaluated'))return;
   const b=getBuild(),a=assess(b);if(a.status==='invalid')return;
   const base=recipes.find(r=>r.id===selected)||discovered.find(r=>r.id===selected);
-  const experimental=mode==='experiment'||!base||!isDefault(b,base.build||base);
-  const stats=skillOutcome(a,b,experimental),roll=Math.floor(Math.random()*100)+1,success=roll<=stats.chance;
+  const exact=mode==='recipe'&&base&&isDefault(b,base.build||base);
+  const experimental=!exact||(!!base?.build&&!base.approved);
+  const stats=skillOutcome(a,b,experimental,exact?(base?.stage||'experimental'):'experimental');
+  const roll=Math.floor(Math.random()*100)+1,success=roll<=stats.chance;
   successfulAttemptKey=success?currentAttemptKey():null;
   let experience='';
   const name=$('crafterName').value.trim();
@@ -183,13 +217,16 @@ function save(){
   const raw=window.prompt('Name this discovered recipe:',suggested);if(raw===null)return;
   const name=raw.trim().slice(0,70);if(!name){$('saveMessage').textContent='A recipe needs a name.';return}
   const prev=discovered.find(r=>r.id===selected),closest=classified.reference;
+  const sameBlueprint=!!prev&&isDefault(b,prev.build);
   const item={
     id:prev?.id||`custom_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
     name,kind:'Discovered homebrew weapon',damage:prev?.damage||closest.damage,
     type:prev?.type||classified.type,
     properties:prev?.properties||classified.recommendations,
     description:`Experimental recipe referencing ${closest.name}; DM approval required.`,
-    build:b,approved:false,createdAt:prev?.createdAt||new Date().toISOString()
+    build:b,stage:sameBlueprint?(prev.stage||'prototype'):'prototype',
+    approved:sameBlueprint?!!prev.approved:false,
+    createdAt:prev?.createdAt||new Date().toISOString()
   };
   if(prev)discovered=discovered.map(r=>r.id===prev.id?item:r);else discovered.push(item);
   if(!persist()){$('saveMessage').textContent='Browser storage unavailable. Export your recipes to keep this design.';return}
@@ -209,6 +246,7 @@ function exportPlayerDesign(){
       counterweight:{type:build.pommel}
     },
     workmanship:build.quality,
+    technique:build.technique,
     designNotes:build.notes
   };
   const blob=new Blob([JSON.stringify(proposal,null,2)],{type:'application/json'});
@@ -221,10 +259,31 @@ async function importData(file){if(!file)return;try{if(file.size>1024*1024)throw
     const c=data.components||{},h=c.head||{},g=c.handle||{},p=c.counterweight||{};
     if(!heads[h.form]||!handles[g.form]||!materials[h.material]||!materials[g.material]||!heads[h.form].shapes.includes(h.shape)||!['small','medium','large'].includes(h.size)||!['short','medium','long'].includes(g.size)||!['tang','socket','lashing'].includes(g.mount)||!['none','iron','heavy'].includes(p.type)||!['crude','standard','fine','masterwork'].includes(data.workmanship))throw Error('Invalid player design components');
     mode='experiment';selected='';invalidateEvaluation();setMode();
-    loadBuild({head:h.form,headMaterial:h.material,headSize:h.size,shape:h.shape,handle:g.form,handleMaterial:g.material,handleSize:g.size,mount:g.mount,pommel:p.type,quality:data.workmanship,notes:typeof data.designNotes==='string'?data.designNotes.slice(0,3000):''});
+    loadBuild({head:h.form,headMaterial:h.material,headSize:h.size,shape:h.shape,handle:g.form,handleMaterial:g.material,handleSize:g.size,mount:g.mount,pommel:p.type,quality:data.workmanship,technique:craftingTechniques[data.technique]?data.technique:'none',notes:typeof data.designNotes==='string'?data.designNotes.slice(0,3000):''});
     render();$('saveMessage').textContent='Player design loaded. Enter DM inputs to evaluate it.';return;
   }
-  if(!['forgebook','guildenheim'].includes(data.app)||!Array.isArray(data.discoveries))throw Error('Not a GuildenHeim export');const clean=data.discoveries.slice(0,200).filter(r=>r&&typeof r.name==='string'&&r.name.length<=70&&r.build&&heads[r.build.head]&&handles[r.build.handle]&&materials[r.build.headMaterial]&&materials[r.build.handleMaterial]&&heads[r.build.head].shapes.includes(r.build.shape)&&['tang','socket','lashing'].includes(r.build.mount)&&['short','small','medium','long','large'].includes(r.build.headSize)&&['short','small','medium','long','large'].includes(r.build.handleSize)).map((r,i)=>({id:`import_${Date.now()}_${i}`,name:r.name,kind:'Discovered homebrew weapon',damage:typeof r.damage==='string'?r.damage.slice(0,30):'DM ruling',type:typeof r.type==='string'?r.type.slice(0,30):'DM ruling',properties:Array.isArray(r.properties)?r.properties.filter(v=>typeof v==='string').slice(0,8):[],description:'Imported homebrew recipe; review before using.',build:r.build,approved:false,createdAt:new Date().toISOString()}));discovered=[...discovered,...clean].slice(0,200);if(!persist())throw Error('Local storage unavailable');render();$('saveMessage').textContent=`Imported ${clean.length} recipes.`}catch(e){alert(`Could not import: ${e.message}`)}finally{$('importFile').value=''}}
+  if(!['forgebook','guildenheim'].includes(data.app)||!Array.isArray(data.discoveries))throw Error('Not a GuildenHeim export');
+  const clean=data.discoveries.slice(0,200).filter(r=>
+    r&&typeof r.name==='string'&&r.name.length<=70&&r.build&&
+    heads[r.build.head]&&handles[r.build.handle]&&materials[r.build.headMaterial]&&materials[r.build.handleMaterial]&&
+    heads[r.build.head].shapes.includes(r.build.shape)&&
+    ['tang','socket','lashing'].includes(r.build.mount)&&
+    ['short','small','medium','long','large'].includes(r.build.headSize)&&
+    ['short','small','medium','long','large'].includes(r.build.handleSize)
+  ).map((r,i)=>{
+    const stage=['experimental','prototype','established','mastered'].includes(r.stage)?r.stage:'prototype';
+    return {id:`import_${Date.now()}_${i}`,name:r.name,kind:'Discovered homebrew weapon',
+      damage:typeof r.damage==='string'?r.damage.slice(0,30):'DM ruling',
+      type:typeof r.type==='string'?r.type.slice(0,30):'DM ruling',
+      properties:Array.isArray(r.properties)?r.properties.filter(v=>typeof v==='string').slice(0,8):[],
+      description:'Imported homebrew recipe; review before using.',
+      build:{...r.build,technique:craftingTechniques[r.build.technique]?r.build.technique:'none'},
+      stage,approved:['established','mastered'].includes(stage),createdAt:new Date().toISOString()};
+  });
+  discovered=[...discovered,...clean].slice(0,200);
+  if(!persist())throw Error('Local storage unavailable');
+  render();$('saveMessage').textContent=`Imported ${clean.length} recipes.`;
+}catch(e){alert(`Could not import: ${e.message}`)}finally{$('importFile').value=''}}
 function init(){
   const diceRecommendation=document.createElement('p');
   diceRecommendation.id='diceRecommendation';
@@ -262,8 +321,10 @@ function init(){
   $('playerExportButton').addEventListener('click',exportPlayerDesign);
   $('importButton').addEventListener('click',()=>$('importFile').click());
   $('importFile').addEventListener('change',e=>importData(e.target.files[0]));
+  createTechniqueControl();
   createPlayerEstimate();
   createDMTools();
+  createDiscoveryControls();
   chooseRecipe('longsword');
 }
 init();

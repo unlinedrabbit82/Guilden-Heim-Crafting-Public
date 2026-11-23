@@ -1,4 +1,10 @@
 /* GuildenHeim — data/components.js */
+/* DEV: Add a head to `heads` with `type`, `mass`, `length`, `integrity`,
+ * `mount`, `glyph`, and `shapes`. Add handles to `handles` with mass/length,
+ * integrity and hands. A new head also needs matching recipe definitions
+ * (recipes.js) if you want it available as a standard blueprint.
+ * Keep mount values compatible with the options in js/app.js.
+ */
 const heads = {
   blade:{name:'Sword blade',type:'slashing',mass:3,length:3,integrity:4,mount:'tang',glyph:'⚔',shapes:['straight','curved','broad','narrow']},
   dagger:{name:'Short blade',type:'piercing',mass:1,length:1,integrity:3,mount:'tang',glyph:'🗡',shapes:['straight','curved','narrow']},

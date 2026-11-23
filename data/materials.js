@@ -1,4 +1,10 @@
 /* GuildenHeim — data/materials.js */
+/* DEV: To add a material, add the same unique ID in BOTH `materials` and
+ * `materialDefaults` below. `mass` multiplies component mass (1 = baseline);
+ * `integrity` is a 1–5 structural score. Workability in materialDefaults
+ * increases crafting difficulty. Keep all values modest and playtest them.
+ * The selectors automatically list new materials; no HTML edit is needed.
+ */
 const materials = {
   steel:{name:'Steel',mass:1,integrity:4,description:'durable, reliable metal'},
   iron:{name:'Iron',mass:1.15,integrity:3,description:'heavy, workable metal'},

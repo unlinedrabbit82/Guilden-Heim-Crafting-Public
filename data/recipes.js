@@ -1,4 +1,9 @@
 /* GuildenHeim — data/recipes.js */
+/* DEV: Add normal weapons with standardRecipe(...) below. Every recipe should
+ * use an existing head/handle/shape/size; the generator validates its parts.
+ * Standard damage and properties are reference statistics, not calculated
+ * bonuses. Avoid altering IDs once players have saved discoveries.
+ */
 const recipes = [
   {id:'longsword',name:'Longsword',kind:'Martial melee weapon',head:'blade',handle:'grip',shape:'straight',headSize:'medium',handleSize:'medium',headMaterial:'steel',handleMaterial:'oak',pommel:'iron',mount:'tang',damage:'1d8',type:'Slashing',properties:['Versatile (1d10)'],description:'A balanced blade with a sturdy grip, made according to a dependable smithing blueprint.'},
   {id:'dagger',name:'Dagger',kind:'Simple melee weapon',head:'dagger',handle:'short',shape:'narrow',headSize:'small',handleSize:'short',headMaterial:'steel',handleMaterial:'oak',pommel:'none',mount:'tang',damage:'1d4',type:'Piercing',properties:['Finesse','Light','Thrown (20/60)'],description:'A compact, precise blade for close quarters.'},

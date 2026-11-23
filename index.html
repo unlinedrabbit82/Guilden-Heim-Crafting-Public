@@ -5,14 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#111c22" />
   <meta name="description" content="A modular tabletop crafting workbench for recipes, experiments, and discovered equipment." />
-  <title>GuildenHeim — Adventurer's Workbench</title>
+  <title>GuildenHeim — Crafting Workbench</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="skill.css" />
+  <link rel="stylesheet" href="dm.css" />
+  <link rel="stylesheet" href="player.css" />
   <script src="script.js" defer></script>
 </head>
 <body>
   <header class="masthead">
     <div class="brand"><div class="brand-mark">✦</div><div><strong>GUILDENHEIM</strong><small>THE ADVENTURER'S WORKBENCH</small></div></div>
-    <div class="top-right"><span class="edition">HOMEbrew · 5e-style prototype</span><button id="exportButton" class="outline tiny">Export recipes</button><button id="importButton" class="outline tiny">Import</button><input type="file" id="importFile" accept="application/json" hidden /></div>
+    <div class="top-right"><span class="edition">HOMEbrew · 5e-style prototype</span><button id="playerExportButton" class="outline tiny">Export design</button><button id="dmToggle" class="outline tiny" aria-pressed="false">DM review</button><button id="exportButton" class="outline tiny dm-only">Export recipes</button><button id="importButton" class="outline tiny dm-only">Import</button><input type="file" id="importFile" accept="application/json" hidden /></div>
   </header>
 
   <main class="layout">
@@ -34,22 +37,27 @@
       <div class="breadcrumb">WORKBENCH <span>/</span> <strong id="breadcrumbName">LONGSWORD</strong></div>
       <div class="heading-line"><div><h2 id="craftTitle">The crafting table</h2><p class="muted" id="craftSubtitle">Customize a familiar recipe with your own materials and parts.</p></div><span id="modeBadge" class="badge">KNOWN RECIPE</span></div>
 
-      <div class="step-title"><span class="step-num">01</span><div><strong>Choose your components</strong><small>Each part changes the physical build. Hover-free explanations appear below.</small></div></div>
+      <div class="step-title"><span class="step-num">01</span><div><strong>Choose your components</strong><small>Select the parts for your design. Your DM will evaluate the outcome.</small></div></div>
       <div class="component-grid">
         <div class="component-card"><div class="card-head"><span class="component-icon">⚔</span><div><span class="eyebrow">PRIMARY COMPONENT</span><strong id="headLabel">Blade / head</strong></div></div><label for="headSelect">Form</label><select id="headSelect"></select><label for="headMaterial">Material</label><select id="headMaterial"></select><label for="headSize">Size</label><select id="headSize"></select><label for="headShape">Shape</label><select id="headShape"></select></div>
         <div class="component-card"><div class="card-head"><span class="component-icon">⌁</span><div><span class="eyebrow">SUPPORT COMPONENT</span><strong>Grip / shaft</strong></div></div><label for="handleSelect">Form</label><select id="handleSelect"></select><label for="handleMaterial">Material</label><select id="handleMaterial"></select><label for="handleSize">Size</label><select id="handleSize"></select><label for="mountSelect">Mounting</label><select id="mountSelect"></select></div>
         <div class="component-card"><div class="card-head"><span class="component-icon">◈</span><div><span class="eyebrow">OPTIONAL COMPONENT</span><strong>Counterweight</strong></div></div><label for="pommelSelect">Pommel</label><select id="pommelSelect"></select><label for="qualitySelect">Workmanship</label><select id="qualitySelect"></select><div class="callout"><strong>Design philosophy</strong><p>Standard recipes keep familiar D&D statistics. New combinations use the physics scores as guidance, not automatic bonuses.</p></div></div>
       </div>
 
-      <div class="step-title second"><span class="step-num">02</span><div><strong>Review the construction</strong><small>Identify strengths, weak points, and unusual properties.</small></div></div>
-      <div class="analysis-grid"><div class="metrics panel"><div class="section-label">PHYSICAL PROFILE <span class="hint">Abstract reference units</span></div><div class="metric-row"><span>Total mass</span><strong id="massStat">—</strong></div><div class="metric-row"><span>Effective length</span><strong id="lengthStat">—</strong></div><div class="metric-row"><span>Structural integrity</span><strong id="integrityStat">—</strong></div><div class="metric-row"><span>Handling</span><strong id="handlingStat">—</strong></div></div><div class="validation panel"><div class="section-label">WORKSHOP ASSESSMENT</div><div id="compatibility"></div><ul id="reasonList"></ul></div></div>
+      <section class="panel player-notes"><label for="notesInput">Design notes</label><p class="muted">Describe what this item is supposed to do, how it is assembled, and what makes it unusual. These notes appear in your export.</p><textarea id="notesInput" rows="4" placeholder="Describe your proposed design..."></textarea></section>
+      <div class="dm-only">
+        <div class="step-title second"><span class="step-num">02</span><div><strong>DM input</strong><small>Enter the character's skill and difficulty, then generate a private ruling.</small></div></div>
+        <section class="panel skill-panel"><div><label for="skillLevel">Crafter skill level</label><select id="skillLevel"><option value="">Choose skill level...</option><option value="0">0 · Untrained</option><option value="1">1 · Apprentice</option><option value="2">2 · Journeyman</option><option value="3">3 · Skilled</option><option value="4">4 · Expert</option><option value="5">5 · Master</option></select><label for="difficultyLevel">DM difficulty</label><select id="difficultyLevel"><option value="">Choose difficulty...</option><option value="-1">Easy</option><option value="0">Standard</option><option value="1">Hard</option><option value="2">Extreme</option></select></div><div class="skill-metrics dm-result"><div><small>MATERIAL COST</small><strong id="costStat">—</strong></div><div><small>SUCCESS CHANCE</small><strong id="chanceStat">—</strong></div><div><small>CRAFTING TIME</small><strong id="timeStat">—</strong></div></div><button id="generateButton" class="primary full">Generate DM result</button><p class="skill-note">Provisional campaign formulas. Material cost is in abstract units until GuildenHeim's economy is defined.</p></section>
+        <div class="dm-result"><div class="step-title second"><span class="step-num">03</span><div><strong>Review the construction</strong><small>Identify strengths, weak points, and unusual properties.</small></div></div>
+        <div class="analysis-grid"><div class="metrics panel"><div class="section-label">PHYSICAL PROFILE <span class="hint">Abstract reference units</span></div><div class="metric-row"><span>Total mass</span><strong id="massStat">—</strong></div><div class="metric-row"><span>Effective length</span><strong id="lengthStat">—</strong></div><div class="metric-row"><span>Structural integrity</span><strong id="integrityStat">—</strong></div><div class="metric-row"><span>Handling</span><strong id="handlingStat">—</strong></div></div><div class="validation panel"><div class="section-label">WORKSHOP ASSESSMENT</div><div id="compatibility"></div><ul id="reasonList"></ul></div></div></div>
+      </div>
     </section>
 
-    <aside class="result-column">
-      <div class="item-card"><div class="eyebrow gold">THE FINISHED WORK</div><div class="weapon-art" aria-hidden="true"><div class="art-halo"></div><span id="weaponGlyph">⚔</span></div><div class="item-content"><div class="item-category" id="categoryLabel">MARTIAL MELEE WEAPON</div><h2 id="itemName">Steel Longsword</h2><div class="item-rule"></div><div class="damage-box"><div><span>BASE DAMAGE</span><strong id="damageStat">1d8</strong></div><div><span>DAMAGE TYPE</span><strong id="damageTypeStat">Slashing</strong></div></div><div id="propertyPills" class="pills"></div><p id="itemDescription" class="item-description"></p><div class="verdict"><strong>RULES REFERENCE</strong><p id="rulingText"></p></div><label for="notesInput">Experiment notes</label><textarea id="notesInput" rows="3" placeholder="What was the player's idea? What did the DM decide?"></textarea><button id="saveButton" class="primary full">Save as discovered recipe</button><div id="saveMessage" class="save-message" role="status" aria-live="polite"></div></div></div>
+    <aside class="result-column dm-result">
+      <div class="item-card"><div class="eyebrow gold">THE FINISHED WORK</div><div class="weapon-art" aria-hidden="true"><div class="art-halo"></div><span id="weaponGlyph">⚔</span></div><div class="item-content"><div class="item-category" id="categoryLabel">MARTIAL MELEE WEAPON</div><h2 id="itemName">Steel Longsword</h2><div class="item-rule"></div><div class="damage-box"><div><span>BASE DAMAGE</span><strong id="damageStat">1d8</strong></div><div><span>DAMAGE TYPE</span><strong id="damageTypeStat">Slashing</strong></div></div><div id="propertyPills" class="pills"></div><p id="itemDescription" class="item-description"></p><div class="verdict"><strong>RULES REFERENCE</strong><p id="rulingText"></p></div><button id="attemptButton" class="outline full attempt">Attempt crafting / discovery</button><button id="saveButton" class="primary full">Save as discovered recipe</button><div id="saveMessage" class="save-message" role="status" aria-live="polite"></div></div></div>
       <p class="disclaimer">This generator is an unofficial homebrew design tool. Its provisional rulings require DM approval and are not official D&D rules.</p>
     </aside>
   </main>
-  <footer>GuildenHeim <span>·</span> Build. Experiment. Discover. <span>·</span> v0.1</footer>
+  <footer>GUILDENHEIM <span>·</span> Build. Experiment. Discover. <span>·</span> v0.2</footer>
 </body>
 </html>

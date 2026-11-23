@@ -4,6 +4,9 @@ const DM_ACCESS_CODE = 'test123'; // Convenience UI lock only; static-site visit
 const MATERIAL_KEY='guildenheim_material_attributes_v1';
 const CRAFTER_KEY='guildenheim_crafter_xp_v1';
 const CRAFT_HISTORY_KEY='guildenheim_craft_history_v1';
+// DM-approved interactions are stored separately from individual weapon recipes.
+// Changing this key starts a new discovery archive; keep it stable between updates.
+const INTERACTION_KEY='guildenheim_approved_interactions_v1';
 function localJSON(key,fallback){try{return JSON.parse(localStorage.getItem(key))||fallback}catch{return fallback}}
 function localSave(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true}catch{return false}}
 const materialAttributes=localJSON(MATERIAL_KEY,{});

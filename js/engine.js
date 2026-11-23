@@ -49,11 +49,18 @@ function assess(b){
   if(b.technique&&b.technique!=='none')reasons.push(`${technique.name}: ${technique.description}`);
   return {mass,length,structural,handling,status,reasons};
 }
+/* Developer note: these tags are the shared vocabulary for interactions.js.
+ * When adding a shape/material/technique rule, emit its tag here first.
+ * Don't grant combat bonuses in this function: only recommend DM-reviewed effects.
+ */
 function classifyWeapon(build,assessment){
   const tags=new Set([
     heads[build.head].type,build.head,build.shape,`${build.headSize}-head`,
     build.handle,`${build.handleSize}-grip`,build.headMaterial,build.handleMaterial
   ]);
+  tags.add(`technique:${build.technique||'none'}`);
+  // A narrow sword blade functions as piercing even though its broad head family is slashing.
+  if(build.head==='blade'&&build.shape==='narrow')tags.add('piercing');
   if(['pole','haft','great'].includes(build.handle))tags.add('two-handed-grip');
   if(build.handle==='pole'&&build.handleSize==='long')tags.add('long-reach');
   if(build.headSize==='large')tags.add('oversized-head');
@@ -84,4 +91,12 @@ function classifyWeapon(build,assessment){
   const type=build.head==='blade'&&build.shape==='narrow'?'Piercing':
     heads[build.head].type[0].toUpperCase()+heads[build.head].type.slice(1);
   return {classification,reference,type,tags:[...tags],recommendations:[...new Set(recommendations)]};
+}
+/* Add/remove interactions in data/interactions.js. Matching is set inclusion:
+ * every required tag must appear, but additional component tags are allowed.
+ * This makes discoveries reusable across different weapon materials and recipes.
+ */
+function matchingInteractions(classification){
+  const available=new Set(classification.tags);
+  return interactionRules.filter(rule=>rule.requiredTags.every(tag=>available.has(tag)));
 }

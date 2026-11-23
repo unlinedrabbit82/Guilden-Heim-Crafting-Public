@@ -1,4 +1,10 @@
 /* GuildenHeim v0.6 crafting techniques — homebrew reference values. */
+/* DEV: Each technique ID must remain unique. `integrity` / `handling` are
+ * direct reference score changes; `complexity` affects the success chance,
+ * `hours` adds crafting time, and `materials` adds abstract unit requirements.
+ * Use {headMaterial:1} to add one unit of the selected head material.
+ * Technique tags are emitted by classifyWeapon() as `technique:<id>`.
+ */
 const craftingTechniques = {
   none:{name:'Standard construction',description:'No specialized technique.',integrity:0,handling:0,complexity:0,hours:0,materials:{}},
   tempering:{name:'Tempering',description:'Heat treatment improves structural resilience.',integrity:1,handling:0,complexity:1,hours:4,materials:{}},

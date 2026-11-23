@@ -3,6 +3,49 @@ const $ = id => document.getElementById(id);
 const fields = ['headSelect','headMaterial','headSize','headShape','handleSelect','handleMaterial','handleSize','mountSelect','pommelSelect','qualitySelect'];
 const format = n => Number(n.toFixed(1)).toString();
 let mode='recipe', selected='longsword', discovered=[], successfulAttemptKey=null;
+/* DEV: Campaign-wide discoveries live in a separate localStorage key.
+ * To change approvals from per-browser to shared online state, this is where
+ * a server-backed API would replace localJSON/localSave. Avoid putting secrets
+ * here: browser code and localStorage are readable by visitors.
+ */
+const savedInteractionIds=localJSON(INTERACTION_KEY,[]);
+const approvedInteractions=new Set(Array.isArray(savedInteractionIds)?savedInteractionIds.filter(id=>interactionRules.some(r=>r.id===id)):[]);
+function createInteractionPanel(){
+  // DM-only panel: candidates are displayed but never automatically activated.
+  const panel=document.createElement('section');panel.id='interactionPanel';
+  panel.style.cssText='padding:14px;margin-top:14px;border:1px solid #bba681;border-radius:6px;background:#ded1b6';
+  panel.innerHTML=`<strong style="font-size:12px;letter-spacing:1px">DISCOVERY INTERACTIONS</strong>
+    <p id="interactionSummary" style="font-size:12px;line-height:1.6"></p>
+    <label for="interactionSelect" style="display:block;font-size:12px;margin:8px 0">Candidate interaction</label>
+    <select id="interactionSelect" style="color:#f0ede2"></select>
+    <p id="interactionDetail" style="font-size:12px;line-height:1.6"></p>
+    <button id="approveInteraction" class="primary full" style="margin-top:6px">Approve interaction for campaign</button>`;
+  document.querySelector('.item-content .verdict').insertAdjacentElement('afterend',panel);
+  $('interactionSelect').addEventListener('change',()=>renderInteractionPanel(classifyWeapon(getBuild(),assess(getBuild()))));
+  $('approveInteraction').addEventListener('click',()=>{
+    if(!document.body.classList.contains('dm-mode')||!document.body.classList.contains('evaluated'))return;
+    const id=$('interactionSelect').value,rule=interactionRules.find(r=>r.id===id);
+    const available=matchingInteractions(classifyWeapon(getBuild(),assess(getBuild())));
+    if(!rule||!available.some(r=>r.id===id)||approvedInteractions.has(id))return;
+    if(!window.confirm(`Approve ${rule.name} as a reusable GuildenHeim discovery?`))return;
+    approvedInteractions.add(id);
+    if(!localSave(INTERACTION_KEY,[...approvedInteractions])){approvedInteractions.delete(id);alert('Unable to save this approval in the browser.');return}
+    renderInteractionPanel(classifyWeapon(getBuild(),assess(getBuild())));
+  });
+}
+function renderInteractionPanel(classification){
+  // DEV: matchingInteractions() is in engine.js; edit rules in data/interactions.js.
+  const matched=matchingInteractions(classification),select=$('interactionSelect');
+  const old=select.value;
+  options('interactionSelect',matched.map(rule=>[rule.id,rule.name]));
+  if(matched.some(rule=>rule.id===old))select.value=old;
+  $('interactionSummary').textContent=matched.length
+    ?`${matched.length} interaction candidate${matched.length===1?'':'s'} match this build. These do not grant abilities without DM approval.`
+    :'No discovered interaction rule matches these tags yet. Try another shape, material, or technique.';
+  const rule=matched.find(r=>r.id===select.value);
+  $('interactionDetail').textContent=rule?`${rule.effect} Discovery difficulty: ${rule.discoveryDifficulty}/5. Status: ${approvedInteractions.has(rule.id)?'Approved for campaign':'Awaiting DM approval'}.`:'';
+  $('approveInteraction').disabled=!rule||approvedInteractions.has(rule.id);
+}
 function currentAttemptKey(){return JSON.stringify({build:getBuild(),skill:Number($('skillLevel').value)})}
 function createDMTools(){
   const host=document.querySelector('.workshop .dm-only');
@@ -139,6 +182,7 @@ function render(){
   $('techniqueDescription').textContent=(craftingTechniques[b.technique]||craftingTechniques.none).description;
   renderPlayerEstimate(b,a);
   const classification=classifyWeapon(b,a),closest=classification.reference;
+  renderInteractionPanel(classification);
   const reference=exact?base:closest,stage=base?.stage||'experimental',provisional=!exact||(!!base?.build&&!base.approved);
   const skill=skillOutcome(a,b,provisional||mode==='experiment',exact?stage:'experimental');
   renderIngredients(skill.ingredients);
@@ -325,6 +369,7 @@ function init(){
   createPlayerEstimate();
   createDMTools();
   createDiscoveryControls();
+  createInteractionPanel();
   chooseRecipe('longsword');
 }
 init();

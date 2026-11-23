@@ -1,4 +1,4 @@
-# Forgebook — D&D Procedural Crafting Workbench
+# GuildenHeim Workbench — D&D Procedural Crafting Workbench
 
 A **static, GitHub Pages-ready** prototype of a tabletop recipe-first crafting system. Players can choose known weapon blueprints, swap materials and parts, assess compatibility, experiment with unusual builds, and save discoveries in their browser.
 

@@ -10,6 +10,35 @@ const materials = {
   ash:{name:'Ash',mass:.55,integrity:3,description:'flexible hardwood'},
   bone:{name:'Bone',mass:.7,integrity:2,description:'brittle organic material'}
 };
+// Editable homebrew material ratings. Stored locally on the DM's browser.
+const materialDefaults={
+  steel:{hardness:7,toughness:7,flexibility:5,magic:2,workability:1},
+  iron:{hardness:5,toughness:5,flexibility:4,magic:2,workability:0},
+  mithral:{hardness:8,toughness:7,flexibility:7,magic:8,workability:2},
+  adamantine:{hardness:10,toughness:9,flexibility:3,magic:6,workability:3},
+  oak:{hardness:3,toughness:5,flexibility:6,magic:3,workability:0},
+  ash:{hardness:3,toughness:5,flexibility:8,magic:4,workability:0},
+  bone:{hardness:4,toughness:3,flexibility:2,magic:5,workability:1}
+};
+const MATERIAL_KEY='guildenheim_material_attributes_v1';
+const CRAFTER_KEY='guildenheim_crafter_xp_v1';
+const CRAFT_HISTORY_KEY='guildenheim_craft_history_v1';
+function localJSON(key,fallback){try{return JSON.parse(localStorage.getItem(key))||fallback}catch{return fallback}}
+function localSave(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true}catch{return false}}
+const materialAttributes=localJSON(MATERIAL_KEY,{});
+const crafterXP=localJSON(CRAFTER_KEY,{});
+const craftHistory=localJSON(CRAFT_HISTORY_KEY,{});
+function rating(id,key){const n=Number(materialAttributes[id]?.[key]);return Number.isFinite(n)&&n>=0&&n<=10?n:materialDefaults[id][key]}
+function requiredMaterials(b,skillLevel){
+  const raw={};
+  const add=(id,quantity)=>{raw[id]=(raw[id]||0)+Math.max(1,Math.ceil(quantity))};
+  add(b.headMaterial,heads[b.head].mass*(sizeMultiplier[b.headSize]||1));
+  add(b.handleMaterial,handles[b.handle].mass*(sizeMultiplier[b.handleSize]||1));
+  if(b.pommel!=='none')add('iron',b.pommel==='heavy'?2:1);
+  return Object.entries(raw).map(([id,base])=>({id,base,quantity:Math.max(1,Math.ceil(base*(1-.05*skillLevel)))}));
+}
+function xpForLevel(level){return [0,20,50,90,140,200][level]||0}
+function levelForXP(xp){let level=0;for(let n=1;n<=5;n++)if(xp>=xpForLevel(n))level=n;return level}
 const heads = {
   blade:{name:'Sword blade',type:'slashing',mass:3,length:3,integrity:4,mount:'tang',glyph:'⚔',shapes:['straight','curved','broad','narrow']},
   dagger:{name:'Short blade',type:'piercing',mass:1,length:1,integrity:3,mount:'tang',glyph:'🗡',shapes:['straight','curved','narrow']},
@@ -37,13 +66,149 @@ let mode='recipe', selected='longsword', discovered=[], successfulAttemptKey=nul
 function currentAttemptKey(){return JSON.stringify({build:getBuild(),skill:Number($('skillLevel').value)})}
 function skillOutcome(a,b,experimental){
   const level=Number($('skillLevel').value);
-  const baseUnits=Math.max(1,Math.ceil(a.mass));
+  const ingredients=requiredMaterials(b,level);
   const dmDifficulty=Number($('difficultyLevel').value);
-  const complexity=Math.max(0,(experimental?2:0)+(a.status==='conditional'?2:0)+(b.quality==='masterwork'?2:b.quality==='fine'?1:0)+dmDifficulty);
-  const cost=Math.max(1,Math.ceil(baseUnits*(1-.05*level)));
+  const materialDifficulty=Math.max(rating(b.headMaterial,'workability'),rating(b.handleMaterial,'workability'));
+  const complexity=Math.max(0,(experimental?2:0)+(a.status==='conditional'?2:0)+(b.quality==='masterwork'?2:b.quality==='fine'?1:0)+dmDifficulty+materialDifficulty);
+  const cost=ingredients.reduce((total,item)=>total+item.quantity,0);
   const chance=a.status==='invalid'?0:Math.max(5,Math.min(95,70+level*6-complexity*10-(b.quality==='crude'?5:0)));
   const hours=Math.max(1,Math.ceil((8+complexity*4+a.mass*2)*(1-.08*level)));
-  return {cost,chance,hours};
+  return {cost,chance,hours,ingredients,complexity,materialDifficulty};
+}
+function createDMTools(){
+  const host=document.querySelector('.workshop .dm-only');
+  const section=document.createElement('section');
+  section.className='panel';section.style.cssText='margin-top:18px;padding:18px;';
+  section.innerHTML=`
+    <div style="font-weight:700;color:var(--gold);margin-bottom:12px">DM crafting reference</div>
+    <div class="dm-result" id="ingredientSection"><strong>Required material units</strong><ul id="ingredientList" style="color:var(--muted);font-size:14px;line-height:1.8"></ul><p style="font-size:12px;color:var(--muted)">The DM handles supply and payment. No player inventory is stored or deducted.</p></div>
+    <div style="border-top:1px solid var(--line);padding-top:14px;margin-top:15px"><strong>Material database</strong><p style="font-size:12px;color:var(--muted)">Edit campaign ratings; changes are saved in this browser.</p>
+      <label for="materialEditorSelect" style="display:block;margin:12px 0 6px">Material</label><select id="materialEditorSelect"></select>
+      <div id="materialEditorFields" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0"></div>
+      <button id="saveMaterial" class="outline full">Save material ratings</button><div id="materialEditorStatus" role="status" style="font-size:12px;color:var(--green);margin-top:8px"></div>
+    </div>
+    <div style="border-top:1px solid var(--line);padding-top:14px;margin-top:18px"><strong>Crafting experience</strong><p style="font-size:12px;color:var(--muted)">Track progress for each character. Repeating known recipes awards less XP.</p>
+      <label for="crafterName" style="display:block;margin:10px 0 6px">Crafter name</label><input id="crafterName" type="text" maxlength="60" placeholder="Character name" style="width:100%;padding:10px;background:#122128;color:var(--text);border:1px solid var(--line);border-radius:6px" />
+      <p id="crafterProgress" style="font-size:13px;color:var(--gold2)" aria-live="polite"></p>
+    </div>`;
+  host.append(section);
+  options('materialEditorSelect',Object.entries(materials).map(([id,m])=>[id,m.name]));
+  const updateEditor=()=>{
+    const id=$('materialEditorSelect').value,area=$('materialEditorFields');area.replaceChildren();
+    for(const key of ['hardness','toughness','flexibility','magic','workability']){
+      const container=document.createElement('label');container.style.cssText='display:block;color:var(--muted);font-size:12px';container.textContent=key[0].toUpperCase()+key.slice(1);
+      const input=document.createElement('input');input.type='number';input.min='0';input.max='10';input.step='1';input.value=rating(id,key);input.dataset.rating=key;
+      input.style.cssText='display:block;width:100%;margin-top:5px;padding:8px;border-radius:5px;border:1px solid var(--line);background:#14252b;color:var(--text)';
+      container.append(input);area.append(container);
+    }
+  };
+  $('materialEditorSelect').addEventListener('change',updateEditor);
+  $('saveMaterial').addEventListener('click',()=>{
+    const id=$('materialEditorSelect').value,values={};
+    for(const input of $('materialEditorFields').querySelectorAll('input')){
+      const n=Number(input.value);if(!Number.isInteger(n)||n<0||n>10){$('materialEditorStatus').textContent='All ratings must be whole numbers from 0 to 10.';return}values[input.dataset.rating]=n;
+    }
+    materialAttributes[id]=values;
+    $('materialEditorStatus').textContent=localSave(MATERIAL_KEY,materialAttributes)?'Material ratings saved.':'Could not save in this browser.';
+    invalidateEvaluation();render();
+  });
+  $('crafterName').addEventListener('input',renderCrafterProgress);
+  updateEditor();renderCrafterProgress();
+}
+function renderCrafterProgress(){
+  const name=$('crafterName')?.value.trim();if(!name){$('crafterProgress').textContent='Enter a character name to track crafting XP.';return}
+  const xp=Number(crafterXP[name]||0),level=levelForXP(xp);
+  $('crafterProgress').textContent=`${xp} XP · Suggested skill ${level}/5${level<5?` · Next level at ${xpForLevel(level+1)} XP`: ' · Mastered'}`;
+}
+function renderIngredients(ingredients){
+  const list=$('ingredientList');if(!list)return;
+  list.replaceChildren(...ingredients.map(item=>{const li=document.createElement('li');li.textContent=`${materials[item.id].name}: ${item.quantity} unit${item.quantity!==1?'s':''}${item.quantity<item.base?` (skill saved ${item.base-item.quantity})`:''}`;return li}));
+}
+
+function createPlayerEstimate() {
+  const section = document.createElement('section');
+
+  section.className = 'panel';
+  section.style.cssText = 'margin-top:18px;padding:18px;';
+
+  section.innerHTML = `
+    <div style="font-weight:700;font-family:Cinzel,serif;margin-bottom:8px">
+      Design Feasibility & Material Estimate
+    </div>
+
+    <p style="color:var(--muted);font-size:13px;line-height:1.5">
+      Base material costs before crafting proficiency reductions.
+    </p>
+
+    <div
+      id="playerValidity"
+      role="status"
+      aria-live="polite"
+      style="font-weight:700;font-size:14px;margin:12px 0"
+    ></div>
+
+    <ul
+      id="playerIngredients"
+      style="font-size:14px;line-height:1.8;padding-left:20px"
+    ></ul>
+
+    <p
+      id="playerEstimateNote"
+      style="font-size:12px;color:var(--muted);line-height:1.5"
+    ></p>
+  `;
+
+  const anchor = document.querySelector('.workshop .player-notes')
+    || document.querySelector('.workshop .component-grid');
+
+  anchor.insertAdjacentElement('afterend', section);
+}
+
+
+function renderPlayerEstimate(build, assessment) {
+  const status = {
+    valid: '✓ Valid construction',
+    conditional: '! Conditionally valid — DM review required',
+    invalid: '× Invalid as assembled'
+  };
+
+  const validity = document.getElementById('playerValidity');
+
+  validity.textContent = status[assessment.status];
+  validity.className = assessment.status;
+
+  const list = document.getElementById('playerIngredients');
+
+  list.replaceChildren();
+
+  // Skill level 0 = no proficiency reductions.
+  const ingredients = requiredMaterials(build, 0);
+
+  for (const item of ingredients) {
+    const li = document.createElement('li');
+
+    li.textContent =
+      `${materials[item.id].name}: ${item.quantity} ` +
+      `unit${item.quantity === 1 ? '' : 's'}`;
+
+    list.appendChild(li);
+  }
+
+  const note = document.getElementById('playerEstimateNote');
+
+  if (assessment.status === 'invalid') {
+    note.textContent =
+      'These components need modification before crafting. ' +
+      'Material quantities are only a planning reference.';
+  } else if (assessment.status === 'conditional') {
+    note.textContent =
+      'This design may require reinforcement or modifications. ' +
+      'The DM determines the final requirements.';
+  } else {
+    note.textContent =
+      'The components pass the provisional compatibility checks. ' +
+      'This does not guarantee crafting success.';
+  }
 }
 
 function safeRead(){try{const data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');return Array.isArray(data)?data.filter(x=>x&&typeof x.id==='string'&&x.build&&typeof x.build==='object').slice(0,200):[]}catch{return []}}
@@ -81,10 +246,12 @@ function assess(b){
 }
 function renderRecipeList(){const list=$('recipeList');list.replaceChildren();[...recipes,...discovered].forEach(r=>{const btn=document.createElement('button');btn.className='recipe-button'+(mode==='recipe'&&selected===r.id?' active':'');const ico=document.createElement('span');ico.className='recipe-icon';ico.textContent=heads[(r.build||r).head]?.glyph||'⚔';const info=document.createElement('span');const title=document.createElement('strong');title.textContent=r.name;const subtitle=document.createElement('small');subtitle.textContent=r.build?'Discovered recipe':'Standard blueprint';info.append(title,subtitle);btn.append(ico,info);btn.addEventListener('click',()=>chooseRecipe(r.id));list.append(btn)});$('recipeCount').textContent=recipes.length+discovered.length}
 function render(){
-  const b=getBuild(),a=assess(b),base=recipes.find(r=>r.id===selected)||discovered.find(r=>r.id===selected),exact=mode==='recipe'&&base&&isDefault(b,base.build||base);
+  const b=getBuild(),a=assess(b),base=recipes.find(r=>r.id===selected)||discovered.find(r=>r.id===selected),exact=mode==='recipe'&&base&&isDefault(b,base.build||base); 
+  renderPlayerEstimate(b, a);
   const closest=recipes.find(r=>r.head===b.head&&r.handle===b.handle)||recipes.find(r=>r.head===b.head)||recipes[0];
   const reference=exact?base:closest, provisional=!exact;
   const skill=skillOutcome(a,b,provisional||mode==='experiment');
+  renderIngredients(skill.ingredients);
   $('costStat').textContent=`${skill.cost} units`;
   $('chanceStat').textContent=`${skill.chance}%`;
   $('timeStat').textContent=`${skill.hours} h`;
@@ -123,7 +290,29 @@ function generateDMResult(){
   if($('skillLevel').value===''||$('difficultyLevel').value===''){window.alert('Enter the crafter skill level and DM difficulty first.');return}
   document.body.classList.add('evaluated');successfulAttemptKey=null;$('saveMessage').textContent='DM result generated. Roll an attempt to discover the recipe.';render();
 }
-function attemptCraft(){const b=getBuild(),a=assess(b);if(a.status==='invalid')return;const base=recipes.find(r=>r.id===selected)||discovered.find(r=>r.id===selected),experimental=mode==='experiment'||!base||!isDefault(b,base.build||base);const stats=skillOutcome(a,b,experimental);const roll=Math.floor(Math.random()*100)+1;const success=roll<=stats.chance;successfulAttemptKey=success?currentAttemptKey():null;$('saveMessage').textContent=success?`Success! Rolled ${roll} against ${stats.chance}%. ${experimental?'Discovery may be recorded.':'Crafting succeeded; you may record a variant.'} Materials budget: ${stats.cost} units; time: ${stats.hours} hours.`:`Attempt failed (rolled ${roll}; needed ${stats.chance} or less). The DM decides whether materials are consumed. Try again or refine the design.`;render()}
+function attemptCraft(){
+  if(!document.body.classList.contains('dm-mode')||!document.body.classList.contains('evaluated'))return;
+  const b=getBuild(),a=assess(b);if(a.status==='invalid')return;
+  const base=recipes.find(r=>r.id===selected)||discovered.find(r=>r.id===selected);
+  const experimental=mode==='experiment'||!base||!isDefault(b,base.build||base);
+  const stats=skillOutcome(a,b,experimental),roll=Math.floor(Math.random()*100)+1,success=roll<=stats.chance;
+  successfulAttemptKey=success?currentAttemptKey():null;
+  let experience='';
+  const name=$('crafterName').value.trim();
+  if(name){
+    const identity=`${name}::${b.head}::${b.handle}::${b.shape}::${b.headMaterial}::${b.handleMaterial}`;
+    const repetitions=Number(craftHistory[identity]||0);
+    const earned=success?(experimental?8:repetitions?1:4):1;
+    crafterXP[name]=Number(crafterXP[name]||0)+earned;
+    if(success)craftHistory[identity]=repetitions+1;
+    localSave(CRAFTER_KEY,crafterXP);localSave(CRAFT_HISTORY_KEY,craftHistory);renderCrafterProgress();
+    experience=` ${name} earned ${earned} crafting XP.`;
+  }
+  $('saveMessage').textContent=success
+    ?`Success! Rolled ${roll} against ${stats.chance}%. ${experimental?'Discovery may be recorded.':'Crafting succeeded; you may record a variant.'} ${stats.cost} material units; ${stats.hours} hours.${experience}`
+    :`Attempt failed (rolled ${roll}; needed ${stats.chance} or less). The DM decides if materials are consumed.${experience}`;
+  render();
+}
 function save(){const b=getBuild(),a=assess(b);if(a.status==='invalid'||successfulAttemptKey!==currentAttemptKey())return;const suggested=`${materials[b.headMaterial].name} ${heads[b.head].name}`;const raw=window.prompt('Name this discovered recipe:',suggested);if(raw===null)return;const name=raw.trim().slice(0,70);if(!name){$('saveMessage').textContent='A recipe needs a name.';return}const prev=discovered.find(r=>r.id===selected);const closest=recipes.find(r=>r.head===b.head&&r.handle===b.handle)||recipes.find(r=>r.head===b.head)||recipes[0];const item={id:prev?.id||`custom_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,name,kind:'Discovered homebrew weapon',damage:prev?.damage||closest.damage,type:prev?.type||closest.type,properties:prev?.properties||closest.properties,description:`Player-developed recipe based on the ${closest.name}. Review with the DM.`,build:b,approved:false,createdAt:prev?.createdAt||new Date().toISOString()};if(prev)discovered=discovered.map(r=>r.id===prev.id?item:r);else discovered.push(item);if(!persist()){$('saveMessage').textContent='Browser storage unavailable. Export your recipes to keep this design.';return}selected=item.id;mode='recipe';successfulAttemptKey=null;setMode();$('saveMessage').textContent='Saved locally as a provisional discovery. Export to back it up.';render()}
 function exportData(){const blob=new Blob([JSON.stringify({app:'guildenheim',version:2,discoveries:discovered},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='guildenheim-recipes.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 function exportPlayerDesign(){
@@ -187,6 +376,8 @@ function init(){
   $('playerExportButton').addEventListener('click',exportPlayerDesign);
   $('importButton').addEventListener('click',()=>$('importFile').click());
   $('importFile').addEventListener('change',e=>importData(e.target.files[0]));
+  createPlayerEstimate();
+  createDMTools();
   chooseRecipe('longsword');
 }
 init();

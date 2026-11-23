@@ -1,6 +1,6 @@
 # GuildenHeim — GitHub Pages Edition
 
-Static, client-side D&D crafting workbench. It has 19 melee recipes, configurable components, base material estimates, DM-only review, discovery exports, and crafting XP.
+**Version 0.7.5.** Static, client-side D&D crafting workbench. It has 19 melee recipes, configurable components, base material estimates, DM-only review, discovery exports, crafting XP, category tabs, and a D&D 5e (2014) weapon-properties reference.
 
 ## Folder layout
 
@@ -9,6 +9,7 @@ guildenheim/
 ├── index.html              # Web page and inputs
 ├── css/
 │   ├── styles.css          # Main layout and colors
+│   ├── categories.css      # Top crafting tabs and property reference
 │   ├── skill.css           # Skill panel styling
 │   ├── dm.css              # Player/DM visibility
 │   └── player.css          # Player notes styling
@@ -16,6 +17,7 @@ guildenheim/
 │   ├── materials.js        # Material definitions and ratings
 │   ├── components.js       # Heads, handles, size factors
 │   ├── recipes.js          # 19 standard weapon blueprints
+│   ├── properties.js       # All 11 2014 weapon properties, explained
 │   ├── techniques.js       # Crafting technique rules
 │   └── interactions.js     # Reusable, tag-based discoveries
 └── js/
@@ -24,12 +26,12 @@ guildenheim/
     └── app.js              # Interface, exports, DM review
 ```
 
-The six JavaScript files are **classic deferred scripts** loaded in the order shown in `index.html`. Do not reorder them without refactoring dependencies. This avoids a build tool or package manager and works on GitHub Pages.
+The JavaScript files are **classic deferred scripts** loaded in the order shown in `index.html`. Do not reorder them without refactoring dependencies. This avoids a build tool or package manager and works on GitHub Pages.
 
 ## GitHub Pages setup
 
 1. Extract this ZIP.
-2. Upload the **contents** of the extracted `guildenheim-organized` directory to the root of your GitHub repository. Preserve the `css`, `data`, and `js` folder names.
+2. Upload the **contents** of the extracted `guildenheim-v075` directory to the root of your GitHub repository. Preserve the `css`, `data`, and `js` folder names.
 3. Under GitHub repository Settings → Pages, publish `main` from `/ (root)`.
 4. Hard refresh after deployment to clear cached old files.
 
@@ -51,6 +53,9 @@ This is a **complete replacement**, not a ZIP containing only changed files. Old
 | Material types | `data/materials.js` |
 | Weapon heads and handles | `data/components.js` |
 | Standard recipes | `data/recipes.js` |
+| 2014 weapon properties and explanations | `data/properties.js` |
+| Melee/Ranged/Armor/Magic category descriptions | `js/app.js` → `craftingCategories` |
+| Navbar and placeholder appearance | `css/categories.css` |
 | Crafting technique bonuses and costs | `data/techniques.js` |
 | Emergent interaction candidates | `data/interactions.js` |
 | Compatibility and generated stats | `js/engine.js` |
@@ -74,6 +79,14 @@ This is a **complete replacement**, not a ZIP containing only changed files. Old
 - The DM result screen displays matching candidate interactions and their proposed effects.
 - The DM must explicitly approve an interaction. Approval is saved under a separate browser-local key and is reusable across any later build that meets the rule.
 - Matching a rule never automatically grants a combat bonus or changes official weapon statistics.
+
+## v0.7.5 — crafting categories and 2014 weapon properties
+
+- A top navbar contains **Melee, Ranged, Armor, and Magic**. Melee opens the existing working crafting system; the other tabs contain clearly labeled example components and planned functionality, **not functional crafting generators yet**.
+- The sidebar now contains an expandable **2014 weapon properties** reference, available to players and DMs, with all eleven property headings: Ammunition, Finesse, Heavy, Light, Loading, Range, Reach, Special, Thrown, Two-Handed, and Versatile.
+- These explanations are informational. They do not modify crafting probability or enforce attack mechanics. Some existing weapon recipe property labels include numerical ranges or versatile damage as part of a string.
+- To add a category, first implement its recipe/component definitions and generation logic, then replace the placeholder entry under `craftingCategories` in `js/app.js` with a real category view. Update `data/properties.js` if your table uses a different rules edition.
+- This is **not yet a complete 2014 weapon library**: the current 19 melee blueprints remain unchanged, and ranged weapons are planned.
 
 ## Developer guide — editing GuildenHeim manually
 

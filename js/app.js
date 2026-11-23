@@ -3,6 +3,42 @@ const $ = id => document.getElementById(id);
 const fields = ['headSelect','headMaterial','headSize','headShape','handleSelect','handleMaterial','handleSize','mountSelect','pommelSelect','qualitySelect'];
 const format = n => Number(n.toFixed(1)).toString();
 let mode='recipe', selected='longsword', discovered=[], successfulAttemptKey=null;
+/* DEV: Item categories other than melee are UI-only placeholders for now.
+ * Implement their own recipes and crafting logic before enabling generation. */
+const craftingCategories={
+  ranged:{title:'Ranged crafting',symbol:'➶',description:'Build bows, crossbows, slings, and other ranged weapons from modular parts. Future rules will cover ammunition, draw strength, range, and loading.',examples:['Shortbow · limbs + string + grip','Crossbow · stock + prod + trigger','Sling · pouch + cords']},
+  armor:{title:'Armor crafting',symbol:'⬡',description:'Assemble protective equipment from plates, padding, leather, rings, and fittings. Future rules will cover armor class, weight, stealth, and proficiency.',examples:['Chain mail · linked rings + lining','Shield · body + grip + reinforcement','Plate armor · fitted plates + joints']},
+  magic:{title:'Magic crafting',symbol:'✦',description:'Combine an item base with magical focuses, runes, and reagents. Future rules will include attunement, rarity, magical effects, and DM-controlled discovery.',examples:['Wand · core + focus + binding','Enchanted weapon · base item + rune','Wondrous item · vessel + catalyst']}
+};
+function selectCraftCategory(category){
+  const isMelee=category==='melee';
+  if(!isMelee&&!craftingCategories[category])return;
+  document.querySelectorAll('[data-craft-category]').forEach(button=>{
+    const active=button.dataset.craftCategory===category;
+    button.classList.toggle('active',active);
+    if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');
+  });
+  $('meleeWorkspace').hidden=!isMelee;
+  $('categoryPlaceholder').hidden=isMelee;
+  if(isMelee)return;
+  const info=craftingCategories[category];
+  $('placeholderTitle').textContent=info.title;
+  $('placeholderSymbol').textContent=info.symbol;
+  $('placeholderDescription').textContent=info.description;
+  $('placeholderExamples').replaceChildren(...info.examples.map(example=>{
+    const card=document.createElement('div');card.className='placeholder-example';card.textContent=example;return card;
+  }));
+}
+function createWeaponPropertyReference(){
+  // DEV: Define/edit property meanings in data/properties.js.
+  $('propertyCount').textContent=weaponProperties2014.length;
+  $('weaponPropertyReference').replaceChildren(...weaponProperties2014.map(property=>{
+    const row=document.createElement('details');row.className='property-entry';
+    const summary=document.createElement('summary');summary.textContent=property.name;
+    const description=document.createElement('p');description.textContent=property.description;
+    row.append(summary,description);return row;
+  }));
+}
 /* DEV: Campaign-wide discoveries live in a separate localStorage key.
  * To change approvals from per-browser to shared online state, this is where
  * a server-backed API would replace localJSON/localSave. Avoid putting secrets
@@ -329,6 +365,9 @@ async function importData(file){if(!file)return;try{if(file.size>1024*1024)throw
   render();$('saveMessage').textContent=`Imported ${clean.length} recipes.`;
 }catch(e){alert(`Could not import: ${e.message}`)}finally{$('importFile').value=''}}
 function init(){
+  document.querySelectorAll('[data-craft-category]').forEach(button=>button.addEventListener('click',()=>selectCraftCategory(button.dataset.craftCategory)));
+  $('backToMelee').addEventListener('click',()=>selectCraftCategory('melee'));
+  createWeaponPropertyReference();
   const diceRecommendation=document.createElement('p');
   diceRecommendation.id='diceRecommendation';
   diceRecommendation.className='skill-note dm-result';

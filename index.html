@@ -10,9 +10,11 @@
   <link rel="stylesheet" href="css/skill.css" />
   <link rel="stylesheet" href="css/dm.css" />
   <link rel="stylesheet" href="css/player.css" />
+  <link rel="stylesheet" href="css/categories.css" />
   <script src="data/materials.js" defer></script>
   <script src="data/components.js" defer></script>
   <script src="data/recipes.js" defer></script>
+  <script src="data/properties.js" defer></script>
   <script src="data/techniques.js" defer></script>
   <script src="data/interactions.js" defer></script>
   <script src="js/storage.js" defer></script>
@@ -26,7 +28,24 @@
     <div class="top-right"><span class="edition">HOMEbrew · 5e-style prototype</span><button id="playerExportButton" class="outline tiny">Export design</button><button id="dmToggle" class="outline tiny" aria-pressed="false">DM review</button><button id="exportButton" class="outline tiny dm-only">Export recipes</button><button id="importButton" class="outline tiny dm-only">Import</button><input type="file" id="importFile" accept="application/json" hidden /></div>
   </header>
 
-  <main class="layout">
+  <nav class="craft-nav" aria-label="Crafting categories">
+    <button type="button" class="craft-tab active" data-craft-category="melee" aria-current="page">⚔ Melee <span>Available</span></button>
+    <button type="button" class="craft-tab" data-craft-category="ranged">➶ Ranged <span>Planned</span></button>
+    <button type="button" class="craft-tab" data-craft-category="armor">⬡ Armor <span>Planned</span></button>
+    <button type="button" class="craft-tab" data-craft-category="magic">✦ Magic <span>Planned</span></button>
+  </nav>
+
+  <section id="categoryPlaceholder" class="category-placeholder panel" hidden aria-live="polite">
+    <div class="eyebrow">FUTURE WORKSHOP</div>
+    <div class="placeholder-symbol" id="placeholderSymbol" aria-hidden="true">➶</div>
+    <h1 id="placeholderTitle">Ranged crafting</h1>
+    <p id="placeholderDescription"></p>
+    <div id="placeholderExamples" class="placeholder-examples"></div>
+    <p class="placeholder-note">This is a preview category. No crafting calculations or recipe approvals are available here yet.</p>
+    <button type="button" id="backToMelee" class="primary">Return to melee crafting</button>
+  </section>
+
+  <main class="layout" id="meleeWorkspace">
     <aside class="sidebar panel">
       <div class="eyebrow">THE FORGE</div>
       <h1>Make something<br /><em>legendary.</em></h1>
@@ -37,6 +56,8 @@
       <div class="section-label between"><span>BLUEPRINT LIBRARY</span><span id="recipeCount">4</span></div>
       <div id="recipeList" class="recipe-list"></div>
       <button id="newExperiment" class="outline full add">+ Design a new weapon</button>
+
+      <details class="property-reference"><summary>2014 weapon properties <span id="propertyCount">11</span></summary><p>Rules reference for standard 2014 5e weapon properties. These definitions are not automatic crafting bonuses.</p><div id="weaponPropertyReference"></div></details>
 
       <div class="sidebar-footer"><span class="dot"></span><span>Changes save in this browser</span></div>
     </aside>
@@ -66,6 +87,6 @@
       <p class="disclaimer">This generator is an unofficial homebrew design tool. Its provisional rulings require DM approval and are not official D&D rules.</p>
     </aside>
   </main>
-  <footer>GUILDENHEIM <span>·</span> Build. Experiment. Discover. <span>·</span> v0.7</footer>
+  <footer>GUILDENHEIM <span>·</span> Build. Experiment. Discover. <span>·</span> v0.7.5</footer>
 </body>
 </html>

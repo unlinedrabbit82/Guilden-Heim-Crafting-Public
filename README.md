@@ -1,6 +1,6 @@
 # GuildenHeim — GitHub Pages Edition
 
-Static, client-side D&D crafting workbench. It has 19 melee recipes, configurable components, base material estimates, DM-only review, discovery exports, and crafting XP.
+**Version 0.9.** Static, client-side D&D crafting workbench. It includes all 37 standard 2014 weapons (28 melee, 9 ranged) and all 13 standard 2014 armor/shield entries, shared parchment-style DM result cards, player component estimates, discovery progression, and tiered crafting times. Magic remains a placeholder.
 
 ## Folder layout
 
@@ -9,27 +9,39 @@ guildenheim/
 ├── index.html              # Web page and inputs
 ├── css/
 │   ├── styles.css          # Main layout and colors
+│   ├── categories.css      # Top crafting tabs and property reference
+│   ├── ranged.css          # Ranged crafting interface
+│   ├── item-card.css       # Shared parchment card appearance
+│   ├── armor.css           # Armor/shield workbench
 │   ├── skill.css           # Skill panel styling
 │   ├── dm.css              # Player/DM visibility
 │   └── player.css          # Player notes styling
 ├── data/
 │   ├── materials.js        # Material definitions and ratings
 │   ├── components.js       # Heads, handles, size factors
-│   ├── recipes.js          # 19 standard weapon blueprints
+│   ├── recipes.js          # 28 melee weapon blueprints
+│   ├── weapon-stats.js     # Official 2014 cost and weight table
+│   ├── ranged.js           # 9 ranged blueprints and component templates
+│   ├── armor.js            # 13 armor and shield baselines
+│   ├── properties.js       # All 11 2014 weapon properties, explained
 │   ├── techniques.js       # Crafting technique rules
 │   └── interactions.js     # Reusable, tag-based discoveries
 └── js/
     ├── storage.js          # Local saves and XP state
     ├── engine.js           # Cost, compatibility, classification
-    └── app.js              # Interface, exports, DM review
+    ├── crafting-time.js    # Shared 6-second -> 24-hour duration system
+    ├── item-card.js        # Reusable parchment result renderer
+    ├── app.js              # Melee UI, shared navigation, exports
+    ├── ranged.js           # Ranged UI, evaluations, discoveries
+    └── armor.js            # Armor UI, AC, evaluations, discoveries
 ```
 
-The six JavaScript files are **classic deferred scripts** loaded in the order shown in `index.html`. Do not reorder them without refactoring dependencies. This avoids a build tool or package manager and works on GitHub Pages.
+The JavaScript files are **classic deferred scripts** loaded in the order shown in `index.html`. Do not reorder them without refactoring dependencies. This avoids a build tool or package manager and works on GitHub Pages.
 
 ## GitHub Pages setup
 
 1. Extract this ZIP.
-2. Upload the **contents** of the extracted `guildenheim-organized` directory to the root of your GitHub repository. Preserve the `css`, `data`, and `js` folder names.
+2. Upload the **contents** of the extracted `guildenheim-v09` directory to the root of your GitHub repository. Preserve the `css`, `data`, and `js` folder names.
 3. Under GitHub repository Settings → Pages, publish `main` from `/ (root)`.
 4. Hard refresh after deployment to clear cached old files.
 
@@ -51,6 +63,17 @@ This is a **complete replacement**, not a ZIP containing only changed files. Old
 | Material types | `data/materials.js` |
 | Weapon heads and handles | `data/components.js` |
 | Standard recipes | `data/recipes.js` |
+| Standard 2014 prices and weights | `data/weapon-stats.js` |
+| Ranged blueprint statistics and components | `data/ranged.js` |
+| Ranged crafting mechanics and save logic | `js/ranged.js` |
+| Shared item output fields and parchment rendering | `js/item-card.js` |
+| Shared card visuals, ranged-specific details | `css/item-card.css` |
+| Official armor/shield blueprints and component options | `data/armor.js` |
+| Armor construction, AC previews, DM evaluation and discoveries | `js/armor.js` |
+| Global crafting time tiers | `js/crafting-time.js` |
+| 2014 weapon properties and explanations | `data/properties.js` |
+| Melee/Ranged/Armor/Magic category descriptions | `js/app.js` → `craftingCategories` |
+| Navbar and placeholder appearance | `css/categories.css` |
 | Crafting technique bonuses and costs | `data/techniques.js` |
 | Emergent interaction candidates | `data/interactions.js` |
 | Compatibility and generated stats | `js/engine.js` |
@@ -74,6 +97,85 @@ This is a **complete replacement**, not a ZIP containing only changed files. Old
 - The DM result screen displays matching candidate interactions and their proposed effects.
 - The DM must explicitly approve an interaction. Approval is saved under a separate browser-local key and is reusable across any later build that meets the rule.
 - Matching a rule never automatically grants a combat bonus or changes official weapon statistics.
+
+## v0.7.5 — crafting categories and 2014 weapon properties
+
+- A top navbar contains **Melee, Ranged, Armor, and Magic**. Melee opens the existing working crafting system; the other tabs contain clearly labeled example components and planned functionality, **not functional crafting generators yet**.
+- The sidebar now contains an expandable **2014 weapon properties** reference, available to players and DMs, with all eleven property headings: Ammunition, Finesse, Heavy, Light, Loading, Range, Reach, Special, Thrown, Two-Handed, and Versatile.
+- These explanations are informational. They do not modify crafting probability or enforce attack mechanics. Some existing weapon recipe property labels include numerical ranges or versatile damage as part of a string.
+- To add a category, first implement its recipe/component definitions and generation logic, then replace the placeholder entry under `craftingCategories` in `js/app.js` with a real category view. Update `data/properties.js` if your table uses a different rules edition.
+- This version's historical note applied to v0.7.5. Version 0.8 now contains 37 standard weapon entries.
+
+## v0.8 — complete 2014 weapon list + ranged crafting
+
+- Added nine missing melee weapons: Greatclub, Light Hammer, Sickle, Flail, Lance, Morningstar, Trident, War Pick, and Whip. Total: **28 melee recipes**.
+- Added **9 ranged recipes**: Light Crossbow, Dart, Shortbow, Sling, Blowgun, Hand Crossbow, Heavy Crossbow, Longbow, and Net. All contain 2014 damage, type, range, properties, market price, and weight.
+- **Ranged tab is functional**. It provides frame, material, propulsion, grip, workmanship, compatibility checks, and player-visible base material costs. Known blueprints match the 2014 equipment table; changed parts become homebrew designs requiring DM review.
+- DM review uses craft skill levels 0–5 and difficulty, displays success %, hours, adjusted material units, recommended dice, and weapon statistics. Successful d100 attempts can be saved locally as provisional ranged discoveries.
+- Player **Export player design** creates `guildenheim-ranged-player-design.json`; the DM can use the top **Import** button to load this proposal. DM **Export recipes** and **Import** now include ranged discovery backups.
+- No player inventory, no automatic material spending, and no automatic magical enhancements. Armor and Magic tabs remain future categories.
+- **The official market price (gp/sp/cp) is not the GuildenHeim crafting cost.** Crafting continues to use homebrew abstract material units and proficiency adjustments.
+- The 2014 rules include special rules for lances and nets. The property and special rules are reference text for the DM; GuildenHeim does not implement attack rolls, character sheets, ammunition tracking, or full combat simulation.
+- Source for official baselines: https://www.dndbeyond.com/sources/dnd/basic-rules-2014/equipment
+
+## v0.8.1 — unified melee/ranged output and discovery flow
+
+- **Both melee and ranged results now use the same parchment item card** via `renderEquipmentCard()` in `js/item-card.js`.
+- Cards display identity and classification; damage and damage type; properties; official 2014 market price and weight for exact blueprints; a design description and DM ruling. The ranged card additionally displays ammunition and normal/long range. For custom designs, baseline stats are explicitly marked as reference-only until approved by the DM.
+- Ranged DM evaluation also uses the same **physical profile** (abstract mass, length, integrity 1–5, handling 1–5), **workshop compatibility assessment**, **abstract crafting units**, **success %**, **hours**, and **d100/d20 advice** layout as melee.
+- Ranged discoveries can be saved, reopened, and advanced through **Prototype → Established → Mastered** with DM confirmation. A mastered ranged recipe gains the same provisional reliability and time improvements used for melee. Its stage is included in ranged export/import backups.
+- An existing ranged discovery only gains stage bonuses when the currently selected parts still match that saved design. Modified designs must be evaluated again.
+- Lance and net have specialized 2014 rule summaries in their item-card rulings.
+- **Still homebrew:** Procedural physical profile scores, crafting success rates, material costs, and discovery bonuses are not official 2014 combat statistics. No combat automation, inventory, ammunition tracking, or server-side authentication is included.
+
+### Developer notes: shared card output
+
+1. `renderEquipmentCard(root,item)` accepts `glyph`, `category`, `name`, `damage`, `damageType`, `properties`, `market`, `description`, and `ruling`.
+2. The two current callers are `render()` in `js/app.js` (melee) and `rangedRender()` in `js/ranged.js` (ranged).
+3. New item categories can reuse the parchment HTML markup's `data-item-*` fields and the helper. Add category-specific statistic blocks (e.g., AC or attunement) separately, but preserve the common identity and ruling fields.
+4. Edit `css/item-card.css` for shared parchment additions; the original common parchment styles remain in `css/styles.css`.
+5. **Never present procedurally recommended damage/properties as official** unless an exact 2014 baseline or DM ruling establishes them. Use the provisional labels for generated variants.
+
+### Developer notes: ranged recipes
+
+1. Add frames, mechanisms, or grips under `rangedParts` in `data/ranged.js`. Every frame lists permitted materials and propulsion mechanisms.
+2. Add a `rangedRecipes` entry with a unique ID, `frame`, `mechanism`, `grip`, `material`, `damage`, `type`, `properties`, `ammunition`, and `range`.
+3. Add the matching official catalog ID and `[market price, weight lb]` pair to `data/weapon-stats.js`. For **homebrew weapons**, create a different catalog and do not label their prices as official.
+4. Tune `rangedAssessment()` and `rangedOutcome()` in `js/ranged.js` for homebrew units, compatibility, success chance, and time. These are intentionally independent of melee construction rules.
+5. Keep export formats compatible when extending the save schema. `RANGED_SAVE_KEY` is stable for browser-local discovery backups.
+
+## v0.9 — Armor, shields, and in-game crafting time
+
+- **Armor** is now a functional category, with the 3 light, 5 medium, and 4 heavy armor types plus the shield from D&D 5e 2014 equipment.
+- Each standard armor item stores **base AC, Dexterity limits, Strength requirement, stealth penalty, price, and weight**. A shield adds +2 to the wearer's existing AC. Heavy armor ignores the Dexterity modifier, even when negative.
+- Players choose a **shell, material, lining, fasteners, reinforcement, and workmanship**; they see validity and base abstract material units without skill reductions or inventory management.
+- The DM enters **craft skill**, **difficulty**, and the **wearer's Dex modifier** for a sample AC calculation. Procedural armor variants display the closest 2014 formula only as a DM-approved reference, never an automatic AC bonus.
+- Armor uses the shared parchment item card, with a homebrew **physical profile** (mass, coverage, integrity, mobility), success %, dice recommendation, and construction assessment.
+- Armor designs can be exported as player JSON, imported in DM mode, saved as discoveries, reopened, and advanced through **Prototype → Established → Mastered**. DM recipe backups now include armor discoveries.
+- Added `leather`, `cloth`, and `hide` to the material database. Existing IDs and local saves remain compatible.
+
+### In-game crafting time (melee, ranged, armor)
+
+`js/crafting-time.js` now estimates tabletop durations instead of assigning hours to everything:
+
+| Tier | Base time | Example |
+|---|---|---|
+| Tiny | 1 turn (6 seconds) | Assembling a prepared dart or sling |
+| Small | 10 rounds (1 minute) | Joining a small set of prepared parts |
+| Medium | 2 hours | Longsword, shortbow, leather armor, shield |
+| Large | 12 hours | Heavy weapon, large crossbow, medium armor |
+| Massive | 24 hours | Full chain, splint, or plate armor |
+
+Complexity extends the duration, while crafting proficiency and a mastered recipe reduce it. A single attempt is capped at 24 hours. These are **homebrew campaign-pacing rules**, not official 2014 crafting times. **Turn-scale results presume all raw materials are already prepared**; mining, smelting, curing hide, and other preparation still take DM-determined time.
+
+### Developer guide: tune time and armor
+
+1. Edit `craftingTimeBases` in `js/crafting-time.js` to change tier baselines (measured in seconds).
+2. Adjust the `multiplier` in `calculateCraftingTime()` for complexity, proficiency, or mastery effects.
+3. Melee size mapping lives in `skillOutcome()` in `js/engine.js`; ranged mapping is in `rangedOutcome()` in `js/ranged.js`; armor tiers are declared under `armorShells` in `data/armor.js`.
+4. Add or edit official armor entries under `armorRecipes` in `data/armor.js`. Keep standard AC, cost, weight, Strength, and stealth values separate from homebrew material and crafting data.
+5. Edit `armorAssessment()` and `armorOutcome()` in `js/armor.js` to tune abstract coverage, mobility, material cost, success chance, and DM assessment. `armorACDescription()` and `armorACValue()` implement the 2014 AC display rules.
+6. To add a new item category, reuse `renderEquipmentCard()` from `js/item-card.js` and keep official baseline data distinct from experimental outputs.
 
 ## Developer guide — editing GuildenHeim manually
 

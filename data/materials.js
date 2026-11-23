@@ -12,7 +12,10 @@ const materials = {
   adamantine:{name:'Adamantine',mass:1.4,integrity:5,description:'exceptionally hard fantasy metal'},
   oak:{name:'Oak',mass:.65,integrity:3,description:'sturdy hardwood'},
   ash:{name:'Ash',mass:.55,integrity:3,description:'flexible hardwood'},
-  bone:{name:'Bone',mass:.7,integrity:2,description:'brittle organic material'}
+  bone:{name:'Bone',mass:.7,integrity:2,description:'brittle organic material'},
+  leather:{name:'Leather',mass:.45,integrity:3,description:'prepared flexible hide'},
+  cloth:{name:'Cloth',mass:.25,integrity:2,description:'woven padding and lining'},
+  hide:{name:'Rawhide',mass:.65,integrity:3,description:'thick protective animal hide'}
 };
 // Editable homebrew material ratings. Stored locally on the DM's browser.
 const materialDefaults={
@@ -22,5 +25,8 @@ const materialDefaults={
   adamantine:{hardness:10,toughness:9,flexibility:3,magic:6,workability:3},
   oak:{hardness:3,toughness:5,flexibility:6,magic:3,workability:0},
   ash:{hardness:3,toughness:5,flexibility:8,magic:4,workability:0},
-  bone:{hardness:4,toughness:3,flexibility:2,magic:5,workability:1}
+  bone:{hardness:4,toughness:3,flexibility:2,magic:5,workability:1},
+  leather:{hardness:2,toughness:4,flexibility:8,magic:1,workability:0},
+  cloth:{hardness:1,toughness:2,flexibility:9,magic:1,workability:0},
+  hide:{hardness:3,toughness:5,flexibility:6,magic:1,workability:0}
 };

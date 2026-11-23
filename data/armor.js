@@ -1,0 +1,42 @@
+/* D&D 5e (2014) armor and shield baseline (13 entries). The 2014 AC, price,
+ * weight, strength minimum, and stealth penalty are fixed reference values.
+ * GuildenHeim construction parts and material units are invented mechanics.
+ * SOURCE: https://www.dndbeyond.com/sources/dnd/basic-rules-2014/equipment
+ * DEV: To add a new design, add a valid shell and a recipe below.
+ */
+const armorShells={
+  padded:{name:'Quilted padding',units:3,size:'medium',materials:['cloth','leather','hide']},
+  leather:{name:'Leather panels',units:4,size:'medium',materials:['leather','hide']},
+  studded:{name:'Reinforced leather',units:5,size:'medium',materials:['leather','hide']},
+  hide:{name:'Thick hide panels',units:5,size:'medium',materials:['hide','leather']},
+  chain_shirt:{name:'Chain shirt links',units:7,size:'large',materials:['iron','steel','mithral']},
+  scale:{name:'Overlapping scales',units:10,size:'large',materials:['iron','steel','mithral','adamantine']},
+  breastplate:{name:'Fitted chest plate',units:7,size:'large',materials:['iron','steel','mithral','adamantine']},
+  half_plate:{name:'Partial plate set',units:11,size:'large',materials:['iron','steel','mithral','adamantine']},
+  ring_mail:{name:'Sewn reinforcing rings',units:8,size:'large',materials:['iron','steel','mithral']},
+  chain_mail:{name:'Full chain assembly',units:14,size:'massive',materials:['iron','steel','mithral']},
+  splint:{name:'Metal splint framework',units:15,size:'massive',materials:['iron','steel','mithral','adamantine']},
+  plate:{name:'Articulated plate armor',units:20,size:'massive',materials:['iron','steel','mithral','adamantine']},
+  shield:{name:'Shield body',units:4,size:'medium',materials:['oak','ash','iron','steel','mithral','adamantine']}
+};
+const armorLinings={none:{name:'No additional lining',units:0},cloth:{name:'Cloth lining',units:1},leather:{name:'Leather backing',units:2}};
+const armorFastenings={straps:{name:'Leather straps',units:1},buckles:{name:'Buckles and straps',units:2},rivets:{name:'Riveted joints',units:3}};
+const armorReinforcements={none:{name:'No reinforcement',units:0},edges:{name:'Reinforced edges',units:2},joints:{name:'Articulated joints',units:3}};
+// AC: base + min(Dex modifier, dexCap); dexCap=null means unlimited.
+// Heavy armor uses dexCap=0 and ignores even negative Dex modifiers.
+// Shields use a flat +2 bonus to the wearer's existing AC.
+const armorRecipes=[
+  {id:'padded',name:'Padded',category:'Light',shell:'padded',material:'cloth',lining:'cloth',fastening:'straps',reinforcement:'none',baseAC:11,dexCap:null,strength:0,stealth:true,weightLb:8,marketCost:'5 gp'},
+  {id:'leather',name:'Leather',category:'Light',shell:'leather',material:'leather',lining:'cloth',fastening:'straps',reinforcement:'none',baseAC:11,dexCap:null,strength:0,stealth:false,weightLb:10,marketCost:'10 gp'},
+  {id:'studded_leather',name:'Studded Leather',category:'Light',shell:'studded',material:'leather',lining:'cloth',fastening:'rivets',reinforcement:'edges',baseAC:12,dexCap:null,strength:0,stealth:false,weightLb:13,marketCost:'45 gp'},
+  {id:'hide',name:'Hide',category:'Medium',shell:'hide',material:'hide',lining:'leather',fastening:'straps',reinforcement:'none',baseAC:12,dexCap:2,strength:0,stealth:false,weightLb:12,marketCost:'10 gp'},
+  {id:'chain_shirt',name:'Chain Shirt',category:'Medium',shell:'chain_shirt',material:'steel',lining:'cloth',fastening:'buckles',reinforcement:'none',baseAC:13,dexCap:2,strength:0,stealth:false,weightLb:20,marketCost:'50 gp'},
+  {id:'scale_mail',name:'Scale Mail',category:'Medium',shell:'scale',material:'steel',lining:'leather',fastening:'rivets',reinforcement:'edges',baseAC:14,dexCap:2,strength:0,stealth:true,weightLb:45,marketCost:'50 gp'},
+  {id:'breastplate',name:'Breastplate',category:'Medium',shell:'breastplate',material:'steel',lining:'leather',fastening:'buckles',reinforcement:'none',baseAC:14,dexCap:2,strength:0,stealth:false,weightLb:20,marketCost:'400 gp'},
+  {id:'half_plate',name:'Half Plate',category:'Medium',shell:'half_plate',material:'steel',lining:'leather',fastening:'rivets',reinforcement:'joints',baseAC:15,dexCap:2,strength:0,stealth:true,weightLb:40,marketCost:'750 gp'},
+  {id:'ring_mail',name:'Ring Mail',category:'Heavy',shell:'ring_mail',material:'iron',lining:'cloth',fastening:'rivets',reinforcement:'none',baseAC:14,dexCap:0,strength:0,stealth:true,weightLb:40,marketCost:'30 gp'},
+  {id:'chain_mail',name:'Chain Mail',category:'Heavy',shell:'chain_mail',material:'steel',lining:'cloth',fastening:'buckles',reinforcement:'joints',baseAC:16,dexCap:0,strength:13,stealth:true,weightLb:55,marketCost:'75 gp'},
+  {id:'splint',name:'Splint',category:'Heavy',shell:'splint',material:'steel',lining:'leather',fastening:'rivets',reinforcement:'joints',baseAC:17,dexCap:0,strength:15,stealth:true,weightLb:60,marketCost:'200 gp'},
+  {id:'plate',name:'Plate',category:'Heavy',shell:'plate',material:'steel',lining:'leather',fastening:'rivets',reinforcement:'joints',baseAC:18,dexCap:0,strength:15,stealth:true,weightLb:65,marketCost:'1,500 gp'},
+  {id:'shield',name:'Shield',category:'Shield',shell:'shield',material:'oak',lining:'leather',fastening:'straps',reinforcement:'edges',baseAC:2,dexCap:0,strength:0,stealth:false,weightLb:6,marketCost:'10 gp'}
+];

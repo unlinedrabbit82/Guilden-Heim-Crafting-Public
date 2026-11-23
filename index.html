@@ -10,14 +10,26 @@
   <link rel="stylesheet" href="css/skill.css" />
   <link rel="stylesheet" href="css/dm.css" />
   <link rel="stylesheet" href="css/player.css" />
+  <link rel="stylesheet" href="css/categories.css" />
+  <link rel="stylesheet" href="css/ranged.css" />
+  <link rel="stylesheet" href="css/item-card.css" />
+  <link rel="stylesheet" href="css/armor.css" />
   <script src="data/materials.js" defer></script>
   <script src="data/components.js" defer></script>
   <script src="data/recipes.js" defer></script>
+  <script src="data/weapon-stats.js" defer></script>
+  <script src="data/ranged.js" defer></script>
+  <script src="data/armor.js" defer></script>
+  <script src="data/properties.js" defer></script>
   <script src="data/techniques.js" defer></script>
   <script src="data/interactions.js" defer></script>
   <script src="js/storage.js" defer></script>
+  <script src="js/crafting-time.js" defer></script>
   <script src="js/engine.js" defer></script>
+  <script src="js/item-card.js" defer></script>
   <script src="js/app.js" defer></script>
+  <script src="js/ranged.js" defer></script>
+  <script src="js/armor.js" defer></script>
 </head>
 <body>
   <noscript><p style="margin:1rem;padding:1rem;border:2px solid #d5ac64;color:#fff;background:#17252c">GuildenHeim requires JavaScript for interactive crafting. If your browser or security policy disables JavaScript, the generator cannot calculate or export designs. The source code is available for review before enabling it.</p></noscript>
@@ -26,7 +38,74 @@
     <div class="top-right"><span class="edition">HOMEbrew · 5e-style prototype</span><button id="playerExportButton" class="outline tiny">Export design</button><button id="dmToggle" class="outline tiny" aria-pressed="false">DM review</button><button id="exportButton" class="outline tiny dm-only">Export recipes</button><button id="importButton" class="outline tiny dm-only">Import</button><input type="file" id="importFile" accept="application/json" hidden /></div>
   </header>
 
-  <main class="layout">
+  <nav class="craft-nav" aria-label="Crafting categories">
+    <button type="button" class="craft-tab active" data-craft-category="melee" aria-current="page">⚔ Melee <span>Available</span></button>
+    <button type="button" class="craft-tab" data-craft-category="ranged">➶ Ranged <span>Available</span></button>
+    <button type="button" class="craft-tab" data-craft-category="armor">⬡ Armor <span>Available</span></button>
+    <button type="button" class="craft-tab" data-craft-category="magic">✦ Magic <span>Planned</span></button>
+  </nav>
+
+  <main id="rangedWorkspace" class="ranged-layout" hidden>
+    <aside class="sidebar panel ranged-sidebar">
+      <div class="eyebrow">THE RANGED WORKSHOP</div>
+      <h1>Craft at<br /><em>a distance.</em></h1>
+      <p class="muted intro">Start from a 2014 ranged weapon blueprint, then experiment with its parts and materials.</p>
+      <div class="section-label between"><span>RANGED BLUEPRINTS</span><span id="rangedCount">9</span></div>
+      <div id="rangedRecipeList" class="recipe-list"></div>
+      <button type="button" id="rangedExperimentButton" class="outline full add">+ Experiment with ranged parts</button>
+      <div class="section-label between"><span>DISCOVERED DESIGNS</span><span id="rangedDiscoveryCount">0</span></div>
+      <div id="rangedDiscoveryList" class="recipe-list"></div>
+      <p class="ranged-small-note">Nine 2014 ranged weapons. Custom builds require DM approval.</p>
+    </aside>
+    <section class="ranged-main">
+      <div class="breadcrumb">WORKBENCH <span>/</span> RANGED <span>/</span> <strong id="rangedBreadcrumb">SHORTBOW</strong></div>
+      <div class="heading-line"><div><h2 id="rangedTitle">Shortbow blueprint</h2><p class="muted">Select a frame, propulsion method, grip, material, and workmanship.</p></div><span id="rangedModeBadge" class="badge">KNOWN RECIPE</span></div>
+      <div class="step-title"><span class="step-num">01</span><div><strong>Choose your ranged components</strong><small>Compatibility and base material estimates are available to all players.</small></div></div>
+      <div class="ranged-component-grid">
+        <div class="component-card"><div class="card-head"><span class="component-icon">➶</span><div><span class="eyebrow">STRUCTURE</span><strong>Weapon frame</strong></div></div><label for="rangedFrame">Frame type</label><select id="rangedFrame"></select><label for="rangedMaterial">Main material</label><select id="rangedMaterial"></select></div>
+        <div class="component-card"><div class="card-head"><span class="component-icon">⌁</span><div><span class="eyebrow">PROPULSION</span><strong>Launch mechanism</strong></div></div><label for="rangedMechanism">Mechanism</label><select id="rangedMechanism"></select><label for="rangedGrip">Grip / stock</label><select id="rangedGrip"></select></div>
+        <div class="component-card"><div class="card-head"><span class="component-icon">◈</span><div><span class="eyebrow">FINISHING</span><strong>Assembly</strong></div></div><label for="rangedQuality">Workmanship</label><select id="rangedQuality"><option value="crude">Crude</option><option value="standard" selected>Standard</option><option value="fine">Fine</option><option value="masterwork">Masterwork</option></select><p class="ranged-small-note">Mechanisms must match their frame. Custom layouts receive provisional stats, never automatic bonuses.</p></div>
+      </div>
+      <section class="panel player-notes"><label for="rangedNotes">Design notes</label><p class="muted">Describe the intended mechanism, materials, and special features.</p><textarea id="rangedNotes" rows="4" placeholder="Describe your ranged design..."></textarea></section>
+      <section class="panel ranged-estimate"><strong>Base material estimate</strong><p id="rangedValidity" role="status" aria-live="polite"></p><ul id="rangedMaterialList"></ul><p class="ranged-small-note">Before proficiency reductions. No inventory is tracked; the DM handles supplies.</p><button type="button" id="rangedExport" class="outline">Export player design</button></section>
+      <section class="panel ranged-dm dm-only"><div class="step-title"><span class="step-num">02</span><div><strong>DM crafting evaluation</strong><small>Use the same GuildenHeim crafting skill scale and difficulty system.</small></div></div><div class="ranged-dm-controls"><label>Crafter skill level<select id="rangedSkill"><option value="">Choose...</option><option value="0">0 · Untrained</option><option value="1">1 · Apprentice</option><option value="2">2 · Journeyman</option><option value="3">3 · Skilled</option><option value="4">4 · Expert</option><option value="5">5 · Master</option></select></label><label>DM difficulty<select id="rangedDifficulty"><option value="">Choose...</option><option value="-1">Easy</option><option value="0">Standard</option><option value="1">Hard</option><option value="2">Extreme</option></select></label></div><button id="rangedGenerate" type="button" class="primary">Generate DM result</button></section>
+      <section class="ranged-analysis dm-result"><div class="step-title second"><span class="step-num">03</span><div><strong>Review the construction</strong><small>Reference scores are abstract, not 2014 combat statistics.</small></div></div><div class="analysis-grid"><div class="panel metrics"><div class="section-label">PHYSICAL PROFILE <span class="hint">Abstract reference units</span></div><div class="metric-row"><span>Total mass</span><strong id="rangedMass">—</strong></div><div class="metric-row"><span>Effective length</span><strong id="rangedLength">—</strong></div><div class="metric-row"><span>Structural integrity</span><strong id="rangedIntegrity">—</strong></div><div class="metric-row"><span>Handling</span><strong id="rangedHandling">—</strong></div></div><div class="panel validation"><div class="section-label">WORKSHOP ASSESSMENT</div><div id="rangedCompatibility"></div><ul id="rangedReasons"></ul></div></div><div class="panel ranged-craft-summary"><div class="section-label">CRAFTING REQUIREMENTS</div><div class="ranged-craft-metrics"><div><small>MATERIAL COST</small><strong id="rangedCost">—</strong></div><div><small>SUCCESS CHANCE</small><strong id="rangedChance">—</strong></div><div><small>CRAFTING TIME</small><strong id="rangedTime">—</strong></div></div><p id="rangedDice" class="skill-note"></p></div></section>
+    </section>
+    <aside class="result-column ranged-results dm-result">
+      <div class="item-card" id="rangedItemCard"><div class="eyebrow gold">THE FINISHED WORK</div><div class="weapon-art" aria-hidden="true"><div class="art-halo"></div><span data-item-glyph>🏹</span></div><div class="item-content"><div class="item-category" data-item-category>MARTIAL RANGED WEAPON</div><h2 data-item-name>Shortbow</h2><div class="item-rule"></div><div class="damage-box"><div><span>BASE DAMAGE</span><strong data-item-damage>1d6</strong></div><div><span>DAMAGE TYPE</span><strong data-item-damage-type>Piercing</strong></div></div><div class="pills" data-item-properties></div><p class="item-description" data-item-market></p><p class="item-description" data-item-description></p><div class="verdict"><strong>RULES REFERENCE</strong><p data-item-ruling></p></div><div class="ranged-detail"><div><small>AMMUNITION</small><strong id="rangedAmmunition">—</strong></div><div><small>RANGE</small><strong id="rangedRange">—</strong></div></div><p id="rangedRuling" class="item-description"></p><button type="button" id="rangedAttempt" class="outline full attempt">Attempt crafting / discovery</button><button type="button" id="rangedSave" class="primary full">Save as discovered recipe</button><button type="button" id="rangedAdvance" class="outline full ranged-advance">Advance recipe stage</button><div id="rangedMessage" class="save-message" role="status" aria-live="polite"></div></div></div><p class="disclaimer">Ranged crafting calculations are provisional homebrew rulings and require DM approval.</p>
+    </aside>
+  </main>
+
+  <main id="armorWorkspace" class="ranged-layout armor-layout" hidden>
+    <aside class="sidebar panel armor-sidebar"><div class="eyebrow">THE ARMORER'S BENCH</div><h1>Wear your<br /><em>craft.</em></h1><p class="muted intro">Build protective equipment from known blueprints, or test new material and assembly combinations.</p><div class="section-label between"><span>ARMOR BLUEPRINTS</span><span id="armorCount">13</span></div><div id="armorRecipeList" class="recipe-list"></div><button type="button" id="armorExperimentButton" class="outline full add">+ Experiment with armor</button><div class="section-label between"><span>DISCOVERED DESIGNS</span><span id="armorDiscoveryCount">0</span></div><div id="armorDiscoveryList" class="recipe-list"></div></aside>
+    <section class="ranged-main armor-main">
+      <div class="breadcrumb">WORKBENCH <span>/</span> ARMOR <span>/</span> <strong id="armorBreadcrumb">LEATHER</strong></div>
+      <div class="heading-line"><div><h2 id="armorTitle">Leather armor blueprint</h2><p class="muted">Choose the protective shell, materials, lining, fasteners, and reinforcement.</p></div><span id="armorModeBadge" class="badge">KNOWN RECIPE</span></div>
+      <div class="step-title"><span class="step-num">01</span><div><strong>Choose your components</strong><small>Players can see compatibility and base materials before DM review.</small></div></div>
+      <div class="ranged-component-grid">
+        <div class="component-card"><div class="card-head"><span class="component-icon">⬡</span><div><span class="eyebrow">PRIMARY COMPONENT</span><strong>Protective shell</strong></div></div><label for="armorShell">Armor construction</label><select id="armorShell"></select><label for="armorMaterial">Main material</label><select id="armorMaterial"></select></div>
+        <div class="component-card"><div class="card-head"><span class="component-icon">⌁</span><div><span class="eyebrow">SUPPORT COMPONENT</span><strong>Lining and fasteners</strong></div></div><label for="armorLining">Lining</label><select id="armorLining"></select><label for="armorFastening">Fastening</label><select id="armorFastening"></select></div>
+        <div class="component-card"><div class="card-head"><span class="component-icon">◈</span><div><span class="eyebrow">FINISHING</span><strong>Reinforcement</strong></div></div><label for="armorReinforcement">Reinforcement</label><select id="armorReinforcement"></select><label for="armorQuality">Workmanship</label><select id="armorQuality"><option value="crude">Crude</option><option value="standard" selected>Standard</option><option value="fine">Fine</option><option value="masterwork">Masterwork</option></select></div>
+      </div>
+      <section class="panel player-notes"><label for="armorNotes">Design notes</label><p class="muted">Explain the fit, intended protection, and experimental features.</p><textarea id="armorNotes" rows="4" placeholder="Describe your armor design..."></textarea></section>
+      <section class="panel ranged-estimate"><strong>Base material estimate</strong><p id="armorValidity" role="status" aria-live="polite"></p><ul id="armorMaterialList"></ul><p class="ranged-small-note">Base abstract units, without crafter proficiency reductions. No inventory is tracked.</p><button type="button" id="armorExport" class="outline">Export player design</button></section>
+      <section class="panel ranged-dm dm-only"><div class="step-title"><span class="step-num">02</span><div><strong>DM crafting evaluation</strong><small>Enter crafting skill, difficulty, and wearer Dexterity for the AC example.</small></div></div><div class="armor-dm-controls"><label>Crafter skill level<select id="armorSkill"><option value="">Choose...</option><option value="0">0 · Untrained</option><option value="1">1 · Apprentice</option><option value="2">2 · Journeyman</option><option value="3">3 · Skilled</option><option value="4">4 · Expert</option><option value="5">5 · Master</option></select></label><label>DM difficulty<select id="armorDifficulty"><option value="">Choose...</option><option value="-1">Easy</option><option value="0">Standard</option><option value="1">Hard</option><option value="2">Extreme</option></select></label><label>Wearer's Dex modifier<input id="armorDex" type="number" value="0" min="-5" max="10" step="1" /></label></div><button type="button" id="armorGenerate" class="primary">Generate DM result</button></section>
+      <section class="ranged-analysis dm-result"><div class="step-title second"><span class="step-num">03</span><div><strong>Review the construction</strong><small>Physical scores are homebrew reference values.</small></div></div><div class="analysis-grid"><div class="panel metrics"><div class="section-label">PHYSICAL PROFILE <span class="hint">Abstract reference units</span></div><div class="metric-row"><span>Total mass</span><strong id="armorMass">—</strong></div><div class="metric-row"><span>Coverage</span><strong id="armorCoverage">—</strong></div><div class="metric-row"><span>Structural integrity</span><strong id="armorIntegrity">—</strong></div><div class="metric-row"><span>Mobility</span><strong id="armorMobility">—</strong></div></div><div class="panel validation"><div class="section-label">WORKSHOP ASSESSMENT</div><div id="armorCompatibility"></div><ul id="armorReasons"></ul></div></div><div class="panel ranged-craft-summary"><div class="section-label">CRAFTING REQUIREMENTS</div><div class="ranged-craft-metrics"><div><small>MATERIAL COST</small><strong id="armorCost">—</strong></div><div><small>SUCCESS CHANCE</small><strong id="armorChance">—</strong></div><div><small>CRAFTING TIME</small><strong id="armorTime">—</strong></div></div><p id="armorDice" class="skill-note"></p></div></section>
+    </section>
+    <aside class="result-column armor-results dm-result"><div class="item-card" id="armorItemCard"><div class="eyebrow gold">THE FINISHED WORK</div><div class="weapon-art" aria-hidden="true"><div class="art-halo"></div><span data-item-glyph>⬡</span></div><div class="item-content"><div class="item-category" data-item-category>LIGHT ARMOR</div><h2 data-item-name>Leather Armor</h2><div class="item-rule"></div><div class="armor-ac-display"><span>ARMOR CLASS (2014 BASELINE)</span><strong id="armorAC">11 + Dex modifier</strong><small id="armorACExample"></small></div><div class="pills" data-item-properties></div><p class="item-description" data-item-market></p><p class="item-description" data-item-description></p><div class="verdict"><strong>RULES REFERENCE</strong><p data-item-ruling></p></div><div class="ranged-detail"><div><small>STRENGTH REQUIREMENT</small><strong id="armorStrength">—</strong></div><div><small>STEALTH</small><strong id="armorStealth">—</strong></div><div><small>PUT ON (DON)</small><strong id="armorDon">—</strong></div><div><small>REMOVE (DOFF)</small><strong id="armorDoff">—</strong></div></div><button type="button" id="armorAttempt" class="outline full attempt">Attempt crafting / discovery</button><button type="button" id="armorSave" class="primary full">Save as discovered recipe</button><button type="button" id="armorAdvance" class="outline full ranged-advance">Advance recipe stage</button><div id="armorMessage" class="save-message" role="status" aria-live="polite"></div></div></div><p class="disclaimer">Official armor AC is a baseline reference. Procedural material and quality adjustments require a DM ruling.</p></aside>
+  </main>
+
+  <section id="categoryPlaceholder" class="category-placeholder panel" hidden aria-live="polite">
+    <div class="eyebrow">FUTURE WORKSHOP</div>
+    <div class="placeholder-symbol" id="placeholderSymbol" aria-hidden="true">➶</div>
+    <h1 id="placeholderTitle">Ranged crafting</h1>
+    <p id="placeholderDescription"></p>
+    <div id="placeholderExamples" class="placeholder-examples"></div>
+    <p class="placeholder-note">This is a preview category. No crafting calculations or recipe approvals are available here yet.</p>
+    <button type="button" id="backToMelee" class="primary">Return to melee crafting</button>
+  </section>
+
+  <main class="layout" id="meleeWorkspace">
     <aside class="sidebar panel">
       <div class="eyebrow">THE FORGE</div>
       <h1>Make something<br /><em>legendary.</em></h1>
@@ -37,6 +116,8 @@
       <div class="section-label between"><span>BLUEPRINT LIBRARY</span><span id="recipeCount">4</span></div>
       <div id="recipeList" class="recipe-list"></div>
       <button id="newExperiment" class="outline full add">+ Design a new weapon</button>
+
+      <details class="property-reference"><summary>2014 weapon properties <span id="propertyCount">11</span></summary><p>Rules reference for standard 2014 5e weapon properties. These definitions are not automatic crafting bonuses.</p><div id="weaponPropertyReference"></div></details>
 
       <div class="sidebar-footer"><span class="dot"></span><span>Changes save in this browser</span></div>
     </aside>
@@ -62,10 +143,10 @@
     </section>
 
     <aside class="result-column dm-result">
-      <div class="item-card"><div class="eyebrow gold">THE FINISHED WORK</div><div class="weapon-art" aria-hidden="true"><div class="art-halo"></div><span id="weaponGlyph">⚔</span></div><div class="item-content"><div class="item-category" id="categoryLabel">MARTIAL MELEE WEAPON</div><h2 id="itemName">Steel Longsword</h2><div class="item-rule"></div><div class="damage-box"><div><span>BASE DAMAGE</span><strong id="damageStat">1d8</strong></div><div><span>DAMAGE TYPE</span><strong id="damageTypeStat">Slashing</strong></div></div><div id="propertyPills" class="pills"></div><p id="itemDescription" class="item-description"></p><div class="verdict"><strong>RULES REFERENCE</strong><p id="rulingText"></p></div><button id="attemptButton" class="outline full attempt">Attempt crafting / discovery</button><button id="saveButton" class="primary full">Save as discovered recipe</button><div id="saveMessage" class="save-message" role="status" aria-live="polite"></div></div></div>
+      <div class="item-card"><div class="eyebrow gold">THE FINISHED WORK</div><div class="weapon-art" aria-hidden="true"><div class="art-halo"></div><span id="weaponGlyph">⚔</span></div><div class="item-content"><div class="item-category" id="categoryLabel">MARTIAL MELEE WEAPON</div><h2 id="itemName">Steel Longsword</h2><div class="item-rule"></div><div class="damage-box"><div><span>BASE DAMAGE</span><strong id="damageStat">1d8</strong></div><div><span>DAMAGE TYPE</span><strong id="damageTypeStat">Slashing</strong></div></div><div id="propertyPills" class="pills"></div><p id="meleeOfficialStats" class="item-description"></p><p id="itemDescription" class="item-description"></p><div class="verdict"><strong>RULES REFERENCE</strong><p id="rulingText"></p></div><button id="attemptButton" class="outline full attempt">Attempt crafting / discovery</button><button id="saveButton" class="primary full">Save as discovered recipe</button><div id="saveMessage" class="save-message" role="status" aria-live="polite"></div></div></div>
       <p class="disclaimer">This generator is an unofficial homebrew design tool. Its provisional rulings require DM approval and are not official D&D rules.</p>
     </aside>
   </main>
-  <footer>GUILDENHEIM <span>·</span> Build. Experiment. Discover. <span>·</span> v0.7</footer>
+  <footer>GUILDENHEIM <span>·</span> Build. Experiment. Discover. <span>·</span> v0.9</footer>
 </body>
 </html>

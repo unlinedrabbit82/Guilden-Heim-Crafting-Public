@@ -14,6 +14,9 @@ const heads = {
   mace:{name:'Mace head',type:'bludgeoning',mass:2.5,length:1,integrity:4,mount:'socket',glyph:'✣',shapes:['round','flanged','spiked']},
   poleblade:{name:'Socketed pole blade',type:'slashing',mass:3,length:2,integrity:4,mount:'socket',glyph:'⚔',shapes:['curved','broad','hooked']},
   staff:{name:'Staff end',type:'bludgeoning',mass:.5,length:1,integrity:3,mount:'socket',glyph:'⌁',shapes:['round','reinforced']}
+  ,flail:{name:'Chain-linked striking head',type:'bludgeoning',mass:2.5,length:1.5,integrity:3,mount:'socket',glyph:'✣',shapes:['round','spiked']}
+  ,pick:{name:'Piercing pick head',type:'piercing',mass:2.5,length:1.5,integrity:4,mount:'socket',glyph:'⚒',shapes:['narrow','spiked']}
+  ,whip:{name:'Flexible lash',type:'slashing',mass:1,length:3,integrity:3,mount:'lashing',glyph:'〰',shapes:['braided','barbed']}
 };
 const handles = {
   grip:{name:'One-handed grip',mass:1,length:2,integrity:3,hands:1},
@@ -21,5 +24,6 @@ const handles = {
   pole:{name:'Long shaft',mass:2.2,length:5,integrity:3,hands:2},
   haft:{name:'Reinforced haft',mass:1.8,length:3,integrity:4,hands:2},
   great:{name:'Two-handed hilt',mass:1.5,length:3,integrity:4,hands:2}
+  ,flexible:{name:'Flexible grip',mass:.5,length:1,integrity:3,hands:1}
 };
 const sizeMultiplier={short:.65,small:.75,medium:1,long:1.4,large:1.55};

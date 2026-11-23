@@ -4,6 +4,19 @@
  * SOURCE: https://www.dndbeyond.com/sources/dnd/basic-rules-2014/equipment
  * DEV: To add a new design, add a valid shell and a recipe below.
  */
+/* Backward-compatibility guard: an outdated cached materials.js from v0.8.1
+ * might not define these three v0.9 materials yet. The intended definitions
+ * remain in data/materials.js; these only fill missing entries, not overwrite
+ * campaign edits or newer catalog definitions. */
+const armorMaterialFallbacks={
+  leather:{name:'Leather',mass:.45,integrity:3,description:'prepared flexible hide',ratings:{hardness:2,toughness:4,flexibility:8,magic:1,workability:0}},
+  cloth:{name:'Cloth',mass:.25,integrity:2,description:'woven padding and lining',ratings:{hardness:1,toughness:2,flexibility:9,magic:1,workability:0}},
+  hide:{name:'Rawhide',mass:.65,integrity:3,description:'thick protective animal hide',ratings:{hardness:3,toughness:5,flexibility:6,magic:1,workability:0}}
+};
+for(const [id,definition] of Object.entries(armorMaterialFallbacks)){
+  if(!materials[id])materials[id]={name:definition.name,mass:definition.mass,integrity:definition.integrity,description:definition.description};
+  if(!materialDefaults[id])materialDefaults[id]={...definition.ratings};
+}
 const armorShells={
   padded:{name:'Quilted padding',units:3,size:'medium',materials:['cloth','leather','hide']},
   leather:{name:'Leather panels',units:4,size:'medium',materials:['leather','hide']},

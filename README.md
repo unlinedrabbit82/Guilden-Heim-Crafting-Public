@@ -1,6 +1,6 @@
 # GuildenHeim — GitHub Pages Edition
 
-**Version 0.9.** Static, client-side D&D crafting workbench. It includes all 37 standard 2014 weapons (28 melee, 9 ranged) and all 13 standard 2014 armor/shield entries, shared parchment-style DM result cards, player component estimates, discovery progression, and tiered crafting times. Magic remains a placeholder.
+**Version 0.9.1.** Static, client-side D&D crafting workbench. It includes all 37 standard 2014 weapons (28 melee, 9 ranged) and all 13 standard 2014 armor/shield entries, shared parchment-style DM result cards, player component estimates, discovery progression, and tiered crafting times. Magic remains a placeholder.
 
 ## Folder layout
 
@@ -41,7 +41,7 @@ The JavaScript files are **classic deferred scripts** loaded in the order shown 
 ## GitHub Pages setup
 
 1. Extract this ZIP.
-2. Upload the **contents** of the extracted `guildenheim-v09` directory to the root of your GitHub repository. Preserve the `css`, `data`, and `js` folder names.
+2. Upload the **contents** of the extracted `guildenheim-v091` directory to the root of your GitHub repository. Preserve the `css`, `data`, and `js` folder names.
 3. Under GitHub repository Settings → Pages, publish `main` from `/ (root)`.
 4. Hard refresh after deployment to clear cached old files.
 
@@ -153,6 +153,14 @@ This is a **complete replacement**, not a ZIP containing only changed files. Old
 - Armor uses the shared parchment item card, with a homebrew **physical profile** (mass, coverage, integrity, mobility), success %, dice recommendation, and construction assessment.
 - Armor designs can be exported as player JSON, imported in DM mode, saved as discoveries, reopened, and advanced through **Prototype → Established → Mastered**. DM recipe backups now include armor discoveries.
 - Added `leather`, `cloth`, and `hide` to the material database. Existing IDs and local saves remain compatible.
+
+### v0.9.1 startup bug fix
+
+- Fixed an armor initialization crash if the browser had cached the older `data/materials.js` without the new `leather`, `cloth`, and `hide` entries.
+- `data/armor.js` supplies these missing definitions as a backward-compatibility fallback, and leaves existing definitions unchanged.
+- Critical `<script>` references use `?v=0.9.1` to avoid reused cached JavaScript after upgrading; all GitHub Pages files still need to be uploaded together.
+- `armorChoose()` validates that its expected selector options exist and reports the missing key clearly instead of silently selecting an empty material.
+- `tests/smoke.js` now includes a regression test that simulates the older material catalog.
 
 ### In-game crafting time (melee, ranged, armor)
 

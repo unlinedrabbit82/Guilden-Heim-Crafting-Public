@@ -39,3 +39,13 @@ for(const item of evalInContext('armorRecipes.map(r=>({...r}))')){
   assert.equal(evalInContext('armorAssessment(armorBuild()).status'),'valid',`${item.id} is valid`);
 }
 console.log('GuildenHeim v0.9 smoke checks passed: 37 weapons, 13 armor items, AC, compatibility, time tiers.');
+// v0.9.1 regression: older cached materials.js didn't contain these entries.
+// The armor catalog should repair only missing material definitions at load.
+const legacy=vm.createContext({});
+vm.runInContext(fs.readFileSync(path.join(base,'data/materials.js'),'utf8'),legacy);
+vm.runInContext("delete materials.leather;delete materials.cloth;delete materials.hide;delete materialDefaults.leather;delete materialDefaults.cloth;delete materialDefaults.hide",legacy);
+vm.runInContext(fs.readFileSync(path.join(base,'data/armor.js'),'utf8'),legacy);
+assert.equal(vm.runInContext('materials.leather.name',legacy),'Leather');
+assert.equal(vm.runInContext('materials.cloth.name',legacy),'Cloth');
+assert.equal(vm.runInContext('materials.hide.name',legacy),'Rawhide');
+console.log('GuildenHeim v0.9.1 cache-compatibility regression passed.');

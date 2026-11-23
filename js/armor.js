@@ -15,8 +15,10 @@ function armorMatches(b,entry){return !!entry&&['shell','material','lining','fas
 function armorExact(b){const r=armorRecipe();return !armorExperiment&&!!r&&['shell','material','lining','fastening','reinforcement'].every(k=>r[k]===b[k]);}
 function armorAssessment(b,level=0){
   const shell=armorShells[b.shell],reasons=[];
+  if(!shell)throw new Error(`Unknown armor shell: ${b.shell}`);
+  const chosenMaterial=materials[b.material];
   const compatible=shell.materials.includes(b.material);
-  if(!compatible)reasons.push(`${materials[b.material].name} does not suit ${shell.name.toLowerCase()} without a custom DM-approved construction.`);
+  if(!compatible)reasons.push(`${chosenMaterial?.name||'Unknown material'} does not suit ${shell.name.toLowerCase()} without a custom DM-approved construction.`);
   if(b.shell==='plate'&&b.fastening==='straps')reasons.push('Articulated plates need proper joints and reinforced fasteners.');
   if(['chain_mail','splint','plate'].includes(b.shell)&&b.lining==='none')reasons.push('Heavy equipment needs a protective lining for extended wear.');
   if(b.shell==='shield'&&b.fastening==='rivets')reasons.push('A shield also needs a usable handgrip, which the DM should confirm.');
@@ -80,7 +82,10 @@ function armorList(){
 function armorChoose(id){
   const recipe=armorRecipes.find(r=>r.id===id);if(!recipe)return;
   armorSelected=id;armorExperiment=false;armorDiscoveryId=null;armorDiscoveryName='';
-  for(const [key,val] of [['armorShell',recipe.shell],['armorMaterial',recipe.material],['armorLining',recipe.lining],['armorFastening',recipe.fastening],['armorReinforcement',recipe.reinforcement],['armorQuality','standard']])armor$(key).value=val;
+  for(const [key,val] of [['armorShell',recipe.shell],['armorMaterial',recipe.material],['armorLining',recipe.lining],['armorFastening',recipe.fastening],['armorReinforcement',recipe.reinforcement],['armorQuality','standard']]){
+    const select=armor$(key);select.value=val;
+    if(select.value!==val)throw new Error(`Armor blueprint ${id} requires missing option ${key}=${val}. Verify the data files were uploaded together.`);
+  }
   armor$('armorNotes').value='';armorInvalidate();armorRender();
 }
 function armorRender(){

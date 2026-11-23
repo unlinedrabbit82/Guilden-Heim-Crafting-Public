@@ -33,4 +33,13 @@ recipes.push(
   standardRecipe('quarterstaff','Quarterstaff','staff','pole','round','small','medium','1d6','Bludgeoning',['Versatile (1d8)'],{kind:'Simple melee weapon',headMaterial:'oak'}),
   standardRecipe('club','Club','staff','short','round','medium','short','1d4','Bludgeoning',['Light'],{kind:'Simple melee weapon',headMaterial:'oak'}),
   standardRecipe('javelin','Javelin','spear','haft','narrow','small','long','1d6','Piercing',['Thrown (30/120)'],{kind:'Simple melee weapon'})
+  ,standardRecipe('greatclub','Greatclub','staff','great','reinforced','large','long','1d8','Bludgeoning',['Two-Handed'],{kind:'Simple melee weapon',headMaterial:'oak'})
+  ,standardRecipe('light_hammer','Light Hammer','hammer','short','flat','small','short','1d4','Bludgeoning',['Light','Thrown (20/60)'],{kind:'Simple melee weapon'})
+  ,standardRecipe('sickle','Sickle','dagger','short','curved','small','short','1d4','Slashing',['Light'],{kind:'Simple melee weapon'})
+  ,standardRecipe('flail','Flail','flail','grip','round','medium','medium','1d8','Bludgeoning',[])
+  ,standardRecipe('lance','Lance','spear','pole','narrow','large','long','1d12','Piercing',['Reach','Special'])
+  ,standardRecipe('morningstar','Morningstar','mace','grip','spiked','medium','medium','1d8','Piercing',[])
+  ,standardRecipe('trident','Trident','spear','pole','barbed','medium','medium','1d6','Piercing',['Thrown (20/60)','Versatile (1d8)'])
+  ,standardRecipe('war_pick','War Pick','pick','haft','narrow','medium','medium','1d8','Piercing',[])
+  ,standardRecipe('whip','Whip','whip','flexible','braided','medium','medium','1d4','Slashing',['Finesse','Reach'])
 );

@@ -11,16 +11,19 @@ const craftingCategories={
   magic:{title:'Magic crafting',symbol:'✦',description:'Combine an item base with magical focuses, runes, and reagents. Future rules will include attunement, rarity, magical effects, and DM-controlled discovery.',examples:['Wand · core + focus + binding','Enchanted weapon · base item + rune','Wondrous item · vessel + catalyst']}
 };
 function selectCraftCategory(category){
-  const isMelee=category==='melee';
+  const isMelee=category==='melee',isRanged=category==='ranged';
   if(!isMelee&&!craftingCategories[category])return;
+  // Switching workshops never carries over an evaluated DM result.
+  document.body.classList.remove('evaluated');
   document.querySelectorAll('[data-craft-category]').forEach(button=>{
     const active=button.dataset.craftCategory===category;
     button.classList.toggle('active',active);
     if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');
   });
   $('meleeWorkspace').hidden=!isMelee;
-  $('categoryPlaceholder').hidden=isMelee;
-  if(isMelee)return;
+  $('rangedWorkspace').hidden=!isRanged;
+  $('categoryPlaceholder').hidden=isMelee||isRanged;
+  if(isMelee||isRanged)return;
   const info=craftingCategories[category];
   $('placeholderTitle').textContent=info.title;
   $('placeholderSymbol').textContent=info.symbol;
@@ -239,10 +242,14 @@ function render(){
   $('compatibility').className=a.status;$('compatibility').textContent=statusText[a.status];const reasons=$('reasonList');reasons.replaceChildren(...a.reasons.map(s=>{const li=document.createElement('li');li.textContent=s;return li}));
   const tagLine=document.createElement('li');tagLine.textContent=`Component tags: ${classification.tags.join(', ')}`;reasons.append(tagLine);
   const recommendationLine=document.createElement('li');recommendationLine.textContent=exact&&!provisional?`Established recipe properties: ${reference.properties.join(', ')||'None'}`:`Suggested properties (not granted): ${classification.recommendations.join(', ')||'None'}`;reasons.append(recommendationLine);
-  $('weaponGlyph').textContent=heads[b.head].glyph;$('categoryLabel').textContent=provisional?'PROVISIONAL HOMEBREW ITEM':reference.kind.toUpperCase();$('itemName').textContent=name;$('damageStat').textContent=reference.damage;$('damageTypeStat').textContent=exact?reference.type:classification.type;
-  const pills=$('propertyPills');pills.replaceChildren(...(exact&&!provisional?reference.properties:classification.recommendations).map(s=>{const span=document.createElement('span');span.textContent=s;return span}));
-  $('itemDescription').textContent=exact?reference.description:`A ${b.shape} ${heads[b.head].name.toLowerCase()} with a ${handles[b.handle].name.toLowerCase()}, constructed from ${materials[b.headMaterial].name.toLowerCase()} and ${materials[b.handleMaterial].name.toLowerCase()}.`;
-  $('rulingText').textContent=a.status==='invalid'?'Fix the incompatible mount before treating the item as usable. '+`Closest reference: ${closest.name}.`:provisional?`Classified as ${classification.classification}. Closest baseline: ${closest.name} (${closest.damage} ${closest.type.toLowerCase()}). Properties shown are suggestions only; the DM must approve the final result.`:'Matches the saved blueprint. Standard recipe statistics apply; abstract physical scores are only a crafting reference.';
+  renderEquipmentCard(document.querySelector('#meleeWorkspace .item-card'),{
+    glyph:heads[b.head].glyph,category:provisional?'PROVISIONAL HOMEBREW ITEM':reference.kind.toUpperCase(),name,
+    damage:reference.damage,damageType:exact?reference.type:classification.type,
+    properties:exact&&!provisional?reference.properties:classification.recommendations,
+    description:exact?reference.description:`A ${b.shape} ${heads[b.head].name.toLowerCase()} with a ${handles[b.handle].name.toLowerCase()}, constructed from ${materials[b.headMaterial].name.toLowerCase()} and ${materials[b.handleMaterial].name.toLowerCase()}.`,
+    market:exact&&reference.marketCost?`2014 market price: ${reference.marketCost} · Official weight: ${reference.weightLb} lb. (Crafting units are separate.)`:'Official market price and weight apply only to matching standard blueprints; custom designs require DM ruling.',
+    ruling:a.status==='invalid'?'Fix the incompatible mount before treating the item as usable. '+`Closest reference: ${closest.name}.`:provisional?`Classified as ${classification.classification}. Closest baseline: ${closest.name} (${closest.damage} ${closest.type.toLowerCase()}). Properties shown are suggestions only; the DM must approve the final result.`:reference.id==='lance'?'Standard lance: disadvantage against creatures within 5 feet. You need two hands when not mounted. Other weapon statistics are the 2014 baseline.':'Matches the saved blueprint. Standard recipe statistics apply; abstract physical scores are only a crafting reference.'
+  });
   $('attemptButton').disabled=a.status==='invalid';
   $('saveButton').disabled=a.status==='invalid'||successfulAttemptKey!==currentAttemptKey();
   $('saveButton').textContent=exact&&base?.build?'Update discovered recipe':'Save as discovered recipe';renderRecipeList();
@@ -313,7 +320,12 @@ function save(){
   selected=item.id;mode='recipe';successfulAttemptKey=null;setMode();
   $('saveMessage').textContent='Saved locally as a provisional discovery. Export to back it up.';render();
 }
-function exportData(){const blob=new Blob([JSON.stringify({app:'guildenheim',version:2,discoveries:discovered},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='guildenheim-recipes.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function exportData(){
+  // v0.8 backups include the separate ranged discovery archive.
+  const ranged=localJSON(RANGED_SAVE_KEY,[]);
+  const blob=new Blob([JSON.stringify({app:'guildenheim',version:3,discoveries:discovered,rangedDiscoveries:Array.isArray(ranged)?ranged:[]},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='guildenheim-recipes.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
 function exportPlayerDesign(){
   const build=getBuild();
   const chosenRecipe=recipes.find(r=>r.id===selected)||discovered.find(r=>r.id===selected);
@@ -335,6 +347,14 @@ function exportPlayerDesign(){
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 async function importData(file){if(!file)return;try{if(file.size>1024*1024)throw Error('File exceeds 1 MB');const data=JSON.parse(await file.text());
+  if(data.format==='guildenheim-ranged-design'){
+    const b=data.components||{};
+    if(!rangedParts.frames[b.frame]||!rangedParts.mechanisms[b.mechanism]||!rangedParts.grips[b.grip]||!materials[b.material]||!['crude','standard','fine','masterwork'].includes(b.quality))throw Error('Invalid ranged design components');
+    selectCraftCategory('ranged');rangedExperiment=true;
+    for(const [id,value] of [['rangedFrame',b.frame],['rangedMaterial',b.material],['rangedMechanism',b.mechanism],['rangedGrip',b.grip],['rangedQuality',b.quality]])$(id).value=value;
+    $('rangedNotes').value=typeof b.notes==='string'?b.notes.slice(0,3000):'';
+    rangedInvalidate();rangedRender();$('rangedMessage').textContent='Ranged player design loaded. Generate the DM result to review it.';return;
+  }
   if(data.format==='guildenheim-player-design'){
     const c=data.components||{},h=c.head||{},g=c.handle||{},p=c.counterweight||{};
     if(!heads[h.form]||!handles[g.form]||!materials[h.material]||!materials[g.material]||!heads[h.form].shapes.includes(h.shape)||!['small','medium','large'].includes(h.size)||!['short','medium','long'].includes(g.size)||!['tang','socket','lashing'].includes(g.mount)||!['none','iron','heavy'].includes(p.type)||!['crude','standard','fine','masterwork'].includes(data.workmanship))throw Error('Invalid player design components');
@@ -362,6 +382,13 @@ async function importData(file){if(!file)return;try{if(file.size>1024*1024)throw
   });
   discovered=[...discovered,...clean].slice(0,200);
   if(!persist())throw Error('Local storage unavailable');
+  if(Array.isArray(data.rangedDiscoveries)){
+    const restored=data.rangedDiscoveries.slice(0,200).filter(item=>{
+      const b=item?.build;return typeof item?.name==='string'&&item.name.length<=70&&b&&rangedParts.frames[b.frame]&&rangedParts.mechanisms[b.mechanism]&&rangedParts.grips[b.grip]&&materials[b.material]&&['crude','standard','fine','masterwork'].includes(b.quality);
+    }).map((item,i)=>({id:`ranged_import_${Date.now()}_${i}`,name:item.name,build:{...item.build,notes:String(item.build.notes||'').slice(0,3000)},stage:'prototype',approved:false,createdAt:new Date().toISOString()}));
+    const previous=localJSON(RANGED_SAVE_KEY,[]);
+    localSave(RANGED_SAVE_KEY,[...(Array.isArray(previous)?previous:[]),...restored].slice(-200));
+  }
   render();$('saveMessage').textContent=`Imported ${clean.length} recipes.`;
 }catch(e){alert(`Could not import: ${e.message}`)}finally{$('importFile').value=''}}
 function init(){

@@ -1,0 +1,37 @@
+/* v0.8 independent ranged workbench. See js/ranged.js for data flow. */
+.ranged-layout{display:grid;grid-template-columns:266px minmax(0,1fr) 342px;gap:28px;max-width:1660px;margin:auto;padding:32px 34px 50px;align-items:start}
+body:not(.evaluated) .ranged-layout{grid-template-columns:266px minmax(0,1fr);max-width:1320px}
+.ranged-sidebar .recipe-list{grid-template-columns:1fr}
+.ranged-main{min-width:0}
+.ranged-component-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.ranged-component-grid label{display:block;font-size:13px;margin:13px 0 7px;color:#cbd3cb}
+.ranged-small-note{font-size:12px;line-height:1.6;color:var(--muted);margin-top:15px}
+.ranged-estimate,.ranged-dm,.ranged-outcome{padding:20px;margin-top:20px}
+.ranged-estimate>strong{font:600 18px Cinzel,serif}
+.ranged-estimate p{font-size:14px;line-height:1.6}
+.ranged-estimate ul{padding-left:22px;font-size:14px;line-height:1.8}
+.ranged-dm-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.ranged-dm-controls label{font-size:14px;color:var(--muted)}
+.ranged-dm-controls select{display:block;margin-top:8px}
+.ranged-outcome h3{font:600 20px Cinzel,serif;color:var(--gold2);margin:0 0 14px}
+.ranged-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ranged-stat{border:1px solid var(--line);border-radius:6px;padding:12px;background:#15272d}
+.ranged-stat span{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}
+.ranged-stat strong{display:block;font-size:14px;line-height:1.5}
+.ranged-outcome>p{font-size:14px;line-height:1.6}
+.ranged-results{min-width:0}
+.ranged-craft-summary{padding:20px;margin-top:16px}
+.ranged-craft-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.ranged-craft-metrics>div{border:1px solid var(--line);border-radius:6px;background:#14272e;padding:12px 8px}
+.ranged-craft-metrics small{display:block;font-size:10px;letter-spacing:.5px;color:var(--muted)}
+.ranged-craft-metrics strong{display:block;font-size:18px;color:var(--gold2);margin-top:6px}
+#rangedCompatibility{font-size:13px;font-weight:700;margin-bottom:12px}
+#rangedReasons{padding-left:18px;margin:0;font-size:12px;color:var(--muted);line-height:1.8}
+.ranged-craft-summary #rangedDice{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:0}
+.ranged-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.ranged-actions .primary{margin-top:0}
+#rangedMessage{color:var(--gold2);min-height:20px}
+#rangedWorkspace[hidden]{display:none!important}
+@media(max-width:1250px){.ranged-layout{grid-template-columns:230px minmax(0,1fr);gap:20px;padding:22px}.ranged-results{grid-column:2;position:static;max-width:680px}body:not(.evaluated) .ranged-layout{grid-template-columns:230px minmax(0,1fr)}}
+@media(max-width:950px){.ranged-layout,body:not(.evaluated) .ranged-layout{display:block;padding:22px}.ranged-sidebar{margin-bottom:26px}.ranged-results{margin-top:22px}.ranged-sidebar .recipe-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){.ranged-layout,body:not(.evaluated) .ranged-layout{padding:14px}.ranged-component-grid,.ranged-dm-controls,.ranged-stats,.ranged-craft-metrics{grid-template-columns:1fr}.ranged-sidebar .recipe-list{grid-template-columns:repeat(2,minmax(0,1fr))}}

@@ -1,0 +1,11 @@
+/* Shared parchment styling for both weapon families. Modify this file when
+ * changing the presentation of every future GuildenHeim item card. */
+.ranged-detail{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.ranged-detail>div{background:#d9ccb3;border:1px solid #c9b99c;padding:12px;border-radius:5px}
+.ranged-detail small{font-size:10px;letter-spacing:.7px;color:#71634e;font-weight:700}
+.ranged-detail strong{display:block;font:600 16px Cinzel,serif;color:#303d37;margin-top:6px}
+.ranged-advance{margin-top:9px;font-size:12px}
+/* Use an identical art/card structure for ranged, melee, and future categories. */
+#rangedItemCard .weapon-art span{font-size:88px}
+#rangedItemCard .item-description{margin:13px 0}
+#rangedItemCard .save-message{font-size:12px;line-height:1.5}

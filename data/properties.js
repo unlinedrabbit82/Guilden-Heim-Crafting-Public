@@ -6,7 +6,7 @@
 const weaponProperties2014 = [
   {id:'ammunition',name:'Ammunition',description:'A ranged weapon with this property requires its specified ammunition. Drawing it is part of the attack; after battle, you can recover half the expended ammunition by searching for one minute. Using it as a melee weapon makes it an improvised weapon.'},
   {id:'finesse',name:'Finesse',description:'Choose Strength or Dexterity for attack and damage rolls with this weapon. Use the same ability modifier for both rolls.'},
-  {id:'heavy',name:'Heavy',description:'Small creatures have disadvantage on attack rolls with a heavy weapon.'},
+  {id:'heavy',name:'Heavy',description:'Small or Tiny creatures have disadvantage on attack rolls with a heavy weapon.'},
   {id:'light',name:'Light',description:'A light weapon is small and easy to handle, making it suitable for the 2014 two-weapon fighting rules.'},
   {id:'loading',name:'Loading',description:'Because the weapon takes time to load, you can fire only one piece of ammunition when you use an action, bonus action, or reaction to fire it, regardless of the number of attacks you could normally make.'},
   {id:'range',name:'Range',description:'A ranged or thrown weapon lists normal and long ranges in feet (for example, 20/60). Beyond normal range, the attack has disadvantage; you cannot attack beyond long range.'},
